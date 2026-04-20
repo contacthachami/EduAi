@@ -19,7 +19,10 @@ interface ChatInterfaceProps {
   courseName: string;
 }
 
-export default function ChatInterface({ courseId, courseName }: ChatInterfaceProps) {
+export default function ChatInterface({
+  courseId,
+  courseName,
+}: ChatInterfaceProps) {
   const { messages, isLoading, sendMessage, clearMessages } = useChat(courseId);
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -71,7 +74,10 @@ export default function ChatInterface({ courseId, courseName }: ChatInterfacePro
       </div>
 
       {/* Messages */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+      <div
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto px-5 py-4 space-y-4"
+      >
         {messages.length === 0 && (
           <div className="text-center py-16">
             <p className="text-sm text-ink-muted">

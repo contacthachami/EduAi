@@ -21,20 +21,23 @@ export default function FileUploader({ onUploadComplete }: FileUploaderProps) {
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<string | null>(null);
 
-  const onDrop = useCallback((accepted: File[]) => {
-    setError(null);
-    if (accepted.length > 0) {
-      const f = accepted[0];
-      if (f.size > 50 * 1024 * 1024) {
-        setError("Fichier trop volumineux (maximum 50 MB).");
-        return;
+  const onDrop = useCallback(
+    (accepted: File[]) => {
+      setError(null);
+      if (accepted.length > 0) {
+        const f = accepted[0];
+        if (f.size > 50 * 1024 * 1024) {
+          setError("Fichier trop volumineux (maximum 50 MB).");
+          return;
+        }
+        setFile(f);
+        if (!courseName) {
+          setCourseName(f.name.replace(/\.pdf$/i, ""));
+        }
       }
-      setFile(f);
-      if (!courseName) {
-        setCourseName(f.name.replace(/\.pdf$/i, ""));
-      }
-    }
-  }, [courseName]);
+    },
+    [courseName],
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -56,7 +59,8 @@ export default function FileUploader({ onUploadComplete }: FileUploaderProps) {
     } catch (err: unknown) {
       let msg = "Erreur lors de l'upload.";
       if (err && typeof err === "object" && "response" in err) {
-        const resp = (err as { response?: { data?: { detail?: string } } }).response;
+        const resp = (err as { response?: { data?: { detail?: string } } })
+          .response;
         if (resp?.data?.detail) {
           msg = resp.data.detail;
         }
@@ -84,9 +88,10 @@ export default function FileUploader({ onUploadComplete }: FileUploaderProps) {
         className={`
           border border-dashed rounded-card p-10 text-center cursor-pointer
           transition-colors duration-200
-          ${isDragActive
-            ? "border-accent bg-accent-light"
-            : "border-border-strong hover:border-accent hover:bg-accent-light/30"
+          ${
+            isDragActive
+              ? "border-accent bg-accent-light"
+              : "border-border-strong hover:border-accent hover:bg-accent-light/30"
           }
         `}
       >
@@ -101,7 +106,9 @@ export default function FileUploader({ onUploadComplete }: FileUploaderProps) {
             ? "Déposez le fichier ici…"
             : "Glissez un fichier PDF ici, ou cliquez pour sélectionner"}
         </p>
-        <p className="text-xs text-ink-muted mt-1">PDF uniquement — 50 MB max</p>
+        <p className="text-xs text-ink-muted mt-1">
+          PDF uniquement — 50 MB max
+        </p>
       </div>
 
       {/* Fichier sélectionné */}
@@ -117,7 +124,9 @@ export default function FileUploader({ onUploadComplete }: FileUploaderProps) {
             <div className="flex items-center gap-3">
               <FileText size={16} strokeWidth={1.5} className="text-accent" />
               <div>
-                <p className="text-sm font-medium text-ink-primary">{file.name}</p>
+                <p className="text-sm font-medium text-ink-primary">
+                  {file.name}
+                </p>
                 <p className="text-xs text-ink-muted">
                   {(file.size / (1024 * 1024)).toFixed(1)} MB
                 </p>
@@ -157,14 +166,16 @@ export default function FileUploader({ onUploadComplete }: FileUploaderProps) {
       )}
 
       {/* Erreur */}
-      {error && (
-        <p className="text-sm text-error">{error}</p>
-      )}
+      {error && <p className="text-sm text-error">{error}</p>}
 
       {/* Progression */}
       {progress && (
         <div className="flex items-center gap-2 text-sm text-ink-secondary">
-          <Loader2 size={14} strokeWidth={1.5} className="animate-spin text-accent" />
+          <Loader2
+            size={14}
+            strokeWidth={1.5}
+            className="animate-spin text-accent"
+          />
           {progress}
         </div>
       )}

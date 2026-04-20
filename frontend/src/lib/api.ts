@@ -83,12 +83,15 @@ export interface QuizResult {
 
 export async function uploadCourse(
   file: File,
-  courseName: string
+  courseName: string,
 ): Promise<CourseUploadResponse> {
   const form = new FormData();
   form.append("file", file);
   form.append("course_name", courseName);
-  const { data } = await api.post<CourseUploadResponse>("/courses/upload", form);
+  const { data } = await api.post<CourseUploadResponse>(
+    "/courses/upload",
+    form,
+  );
   return data;
 }
 
@@ -109,7 +112,7 @@ export async function deleteCourse(id: string): Promise<void> {
 export async function askQuestion(
   courseId: string,
   question: string,
-  sessionId?: string
+  sessionId?: string,
 ): Promise<AnswerResponse> {
   const { data } = await api.post<AnswerResponse>("/qa/ask", {
     course_id: courseId,
@@ -126,7 +129,7 @@ export async function fetchSummary(courseId: string): Promise<SummaryResponse> {
 
 export async function fetchQuiz(
   courseId: string,
-  numQuestions: number = 10
+  numQuestions: number = 10,
 ): Promise<QuizResponse> {
   const { data } = await api.get<QuizResponse>(`/quiz/${courseId}`, {
     params: { num_questions: numQuestions },
@@ -136,7 +139,7 @@ export async function fetchQuiz(
 
 export async function submitQuiz(
   quizId: string,
-  answers: number[]
+  answers: number[],
 ): Promise<QuizResult> {
   const { data } = await api.post<QuizResult>("/quiz/submit", {
     quiz_id: quizId,

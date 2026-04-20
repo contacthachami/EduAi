@@ -17,7 +17,10 @@ export default function RootLayout({
       <body>
         <header className="border-b border-border">
           <nav className="page-container flex items-center justify-between h-14">
-            <a href="/" className="font-display text-lg font-semibold text-ink-primary tracking-tight">
+            <a
+              href="/"
+              className="font-display text-lg font-semibold text-ink-primary tracking-tight"
+            >
               EduAI
             </a>
             <div className="flex items-center gap-6">

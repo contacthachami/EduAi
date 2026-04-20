@@ -5,7 +5,11 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
-import { askQuestion, type AnswerResponse, type SourceDocument } from "@/lib/api";
+import {
+  askQuestion,
+  type AnswerResponse,
+  type SourceDocument,
+} from "@/lib/api";
 
 export interface ChatMessage {
   id: string;
@@ -48,7 +52,7 @@ export function useChat(courseId: string) {
         const response: AnswerResponse = await askQuestion(
           courseId,
           question,
-          sessionIdRef.current
+          sessionIdRef.current,
         );
 
         sessionIdRef.current = response.session_id;
@@ -63,7 +67,7 @@ export function useChat(courseId: string) {
         };
 
         setMessages((prev) =>
-          prev.filter((m) => !m.isLoading).concat(assistantMsg)
+          prev.filter((m) => !m.isLoading).concat(assistantMsg),
         );
       } catch (err: unknown) {
         const errorMsg: ChatMessage = {
@@ -76,13 +80,13 @@ export function useChat(courseId: string) {
           timestamp: new Date(),
         };
         setMessages((prev) =>
-          prev.filter((m) => !m.isLoading).concat(errorMsg)
+          prev.filter((m) => !m.isLoading).concat(errorMsg),
         );
       } finally {
         setIsLoading(false);
       }
     },
-    [courseId, isLoading]
+    [courseId, isLoading],
   );
 
   const clearMessages = useCallback(() => {

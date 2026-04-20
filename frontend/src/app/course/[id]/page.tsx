@@ -36,9 +36,7 @@ export default function CoursePage() {
     fetchCourse(courseId)
       .then(setCourse)
       .catch((err) => {
-        setError(
-          err instanceof Error ? err.message : "Cours introuvable."
-        );
+        setError(err instanceof Error ? err.message : "Cours introuvable.");
       })
       .finally(() => setLoading(false));
   }, [courseId]);
@@ -46,7 +44,11 @@ export default function CoursePage() {
   if (loading) {
     return (
       <div className="page-container py-16 flex items-center gap-2 text-sm text-ink-secondary">
-        <Loader2 size={16} strokeWidth={1.5} className="animate-spin text-accent" />
+        <Loader2
+          size={16}
+          strokeWidth={1.5}
+          className="animate-spin text-accent"
+        />
         Chargement du cours…
       </div>
     );
@@ -56,7 +58,10 @@ export default function CoursePage() {
     return (
       <div className="page-container py-16">
         <p className="text-sm text-error">{error || "Cours introuvable."}</p>
-        <a href="/" className="text-sm text-accent mt-4 inline-block hover:text-accent-hover">
+        <a
+          href="/"
+          className="text-sm text-accent mt-4 inline-block hover:text-accent-hover"
+        >
           ← Retour aux cours
         </a>
       </div>
@@ -95,9 +100,10 @@ export default function CoursePage() {
               onClick={() => setActiveTab(tab.key)}
               className={`
                 pb-2.5 text-sm font-medium transition-colors duration-200 relative
-                ${activeTab === tab.key
-                  ? "text-ink-primary"
-                  : "text-ink-muted hover:text-ink-secondary"
+                ${
+                  activeTab === tab.key
+                    ? "text-ink-primary"
+                    : "text-ink-muted hover:text-ink-secondary"
                 }
               `}
             >

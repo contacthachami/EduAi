@@ -32,11 +32,14 @@ export default function SummaryView({ courseId }: SummaryViewProps) {
     }
   }, []);
 
-  const doFetch = useCallback(async (signal?: AbortSignal) => {
-    const res = await fetchSummary(courseId);
-    if (signal?.aborted) return null;
-    return res;
-  }, [courseId]);
+  const doFetch = useCallback(
+    async (signal?: AbortSignal) => {
+      const res = await fetchSummary(courseId);
+      if (signal?.aborted) return null;
+      return res;
+    },
+    [courseId],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -75,7 +78,7 @@ export default function SummaryView({ courseId }: SummaryViewProps) {
           setError(
             err instanceof Error
               ? err.message
-              : "Impossible de charger les résumés."
+              : "Impossible de charger les résumés.",
           );
           setLoading(false);
         }
@@ -90,7 +93,11 @@ export default function SummaryView({ courseId }: SummaryViewProps) {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-16 gap-3">
-        <Loader2 size={24} strokeWidth={1.5} className="animate-spin text-accent" />
+        <Loader2
+          size={24}
+          strokeWidth={1.5}
+          className="animate-spin text-accent"
+        />
         <p className="text-sm text-ink-secondary">Chargement…</p>
       </div>
     );
@@ -99,10 +106,17 @@ export default function SummaryView({ courseId }: SummaryViewProps) {
   if (generating) {
     return (
       <div className="flex flex-col items-center justify-center py-16 gap-3">
-        <Loader2 size={24} strokeWidth={1.5} className="animate-spin text-accent" />
-        <p className="text-sm text-ink-secondary">Génération des résumés en cours…</p>
+        <Loader2
+          size={24}
+          strokeWidth={1.5}
+          className="animate-spin text-accent"
+        />
+        <p className="text-sm text-ink-secondary">
+          Génération des résumés en cours…
+        </p>
         <p className="text-xs text-ink-muted">
-          La première génération peut prendre plusieurs minutes. Cette page se met à jour automatiquement.
+          La première génération peut prendre plusieurs minutes. Cette page se
+          met à jour automatiquement.
         </p>
       </div>
     );
@@ -162,7 +176,9 @@ function AccordionItem({
                    hover:bg-accent-light/20 transition-colors duration-200"
       >
         <div className="flex items-baseline gap-3">
-          <span className="text-xs font-mono text-ink-muted">{String(index + 1).padStart(2, "0")}</span>
+          <span className="text-xs font-mono text-ink-muted">
+            {String(index + 1).padStart(2, "0")}
+          </span>
           <h3 className="font-display text-base font-semibold text-ink-primary">
             {chapter.title}
           </h3>
@@ -175,7 +191,11 @@ function AccordionItem({
             animate={{ rotate: isOpen ? 180 : 0 }}
             transition={{ duration: 0.2 }}
           >
-            <ChevronDown size={16} strokeWidth={1.5} className="text-ink-muted" />
+            <ChevronDown
+              size={16}
+              strokeWidth={1.5}
+              className="text-ink-muted"
+            />
           </motion.div>
         </div>
       </button>

@@ -21,14 +21,16 @@ export default function SourceCard({ source, index }: SourceCardProps) {
       </span>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <BookOpen size={12} strokeWidth={1.5} className="text-ink-muted flex-shrink-0" />
+          <BookOpen
+            size={12}
+            strokeWidth={1.5}
+            className="text-ink-muted flex-shrink-0"
+          />
           <span className="text-xs font-medium text-ink-secondary">
             Page {source.page}
             {source.chapter && ` — ${source.chapter}`}
           </span>
-          <span className="text-xs text-ink-muted ml-auto">
-            {confidence}%
-          </span>
+          <span className="text-xs text-ink-muted ml-auto">{confidence}%</span>
         </div>
         <p className="text-xs text-ink-muted mt-0.5 line-clamp-2 leading-relaxed">
           {source.chunk_text}

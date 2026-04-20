@@ -50,8 +50,8 @@ export default function HomePage() {
           Vos cours
         </h1>
         <p className="text-ink-secondary mt-3 text-base">
-          Uploadez un PDF de cours pour commencer à poser des questions,
-          générer des résumés et créer des quiz de révision.
+          Uploadez un PDF de cours pour commencer à poser des questions, générer
+          des résumés et créer des quiz de révision.
         </p>
       </motion.div>
 
@@ -66,8 +66,14 @@ export default function HomePage() {
             transition={{ duration: 0.3, delay: 0.1 }}
             className="text-center py-20"
           >
-            <BookOpen size={18} strokeWidth={1.5} className="mx-auto text-ink-muted mb-3" />
-            <p className="text-sm text-ink-muted">Aucun cours pour le moment.</p>
+            <BookOpen
+              size={18}
+              strokeWidth={1.5}
+              className="mx-auto text-ink-muted mb-3"
+            />
+            <p className="text-sm text-ink-muted">
+              Aucun cours pour le moment.
+            </p>
             <a
               href="/upload"
               className="inline-block mt-4 text-sm text-accent hover:text-accent-hover

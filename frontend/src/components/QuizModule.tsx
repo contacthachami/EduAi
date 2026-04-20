@@ -46,7 +46,7 @@ export default function QuizModule({ courseId }: QuizModuleProps) {
       setState("active");
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Impossible de générer le quiz."
+        err instanceof Error ? err.message : "Impossible de générer le quiz.",
       );
       setState("idle");
     }
@@ -83,7 +83,7 @@ export default function QuizModule({ courseId }: QuizModuleProps) {
       setState("submitted");
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Erreur lors de la soumission."
+        err instanceof Error ? err.message : "Erreur lors de la soumission.",
       );
       setState("active");
     }
@@ -101,7 +101,9 @@ export default function QuizModule({ courseId }: QuizModuleProps) {
         </p>
 
         <div className="inline-flex items-center gap-3 mb-6">
-          <label className="text-sm text-ink-secondary">Nombre de questions :</label>
+          <label className="text-sm text-ink-secondary">
+            Nombre de questions :
+          </label>
           <select
             value={numQuestions}
             onChange={(e) => setNumQuestions(Number(e.target.value))}
@@ -109,7 +111,9 @@ export default function QuizModule({ courseId }: QuizModuleProps) {
                        text-ink-primary focus:outline-none focus:border-accent"
           >
             {[5, 10, 15, 20].map((n) => (
-              <option key={n} value={n}>{n}</option>
+              <option key={n} value={n}>
+                {n}
+              </option>
             ))}
           </select>
         </div>
@@ -129,7 +133,11 @@ export default function QuizModule({ courseId }: QuizModuleProps) {
   if (state === "loading") {
     return (
       <div className="flex items-center justify-center py-16 gap-2 text-sm text-ink-secondary">
-        <Loader2 size={16} strokeWidth={1.5} className="animate-spin text-accent" />
+        <Loader2
+          size={16}
+          strokeWidth={1.5}
+          className="animate-spin text-accent"
+        />
         Génération du quiz…
       </div>
     );
@@ -150,7 +158,9 @@ export default function QuizModule({ courseId }: QuizModuleProps) {
       {/* Barre de progression */}
       <div className="mb-8">
         <div className="flex justify-between text-xs text-ink-muted mb-2">
-          <span>Question {currentQ + 1} sur {questions.length}</span>
+          <span>
+            Question {currentQ + 1} sur {questions.length}
+          </span>
           <span>{answers.filter((a) => a !== null).length} répondues</span>
         </div>
         <div className="h-px bg-border w-full relative">
@@ -190,9 +200,10 @@ export default function QuizModule({ courseId }: QuizModuleProps) {
                 className={`
                   w-full text-left px-4 py-3 text-sm border rounded-card
                   transition-all duration-200
-                  ${isSelected
-                    ? "border-accent bg-accent-light text-ink-primary"
-                    : "border-border bg-transparent text-ink-secondary hover:border-accent hover:text-ink-primary"
+                  ${
+                    isSelected
+                      ? "border-accent bg-accent-light text-ink-primary"
+                      : "border-border bg-transparent text-ink-secondary hover:border-accent hover:text-ink-primary"
                   }
                 `}
               >
@@ -261,7 +272,9 @@ function QuizResults({
           {result.score}/{result.total}
         </p>
         <p className="text-sm text-ink-secondary mt-2">{label}</p>
-        <p className="text-xs text-ink-muted mt-1">{result.percentage}% de bonnes réponses</p>
+        <p className="text-xs text-ink-muted mt-1">
+          {result.percentage}% de bonnes réponses
+        </p>
       </div>
 
       {/* Détails */}
@@ -275,9 +288,17 @@ function QuizResults({
             className="py-3 flex items-start gap-3"
           >
             {d.correct ? (
-              <Check size={16} strokeWidth={1.5} className="text-success mt-0.5 flex-shrink-0" />
+              <Check
+                size={16}
+                strokeWidth={1.5}
+                className="text-success mt-0.5 flex-shrink-0"
+              />
             ) : (
-              <XIcon size={16} strokeWidth={1.5} className="text-error mt-0.5 flex-shrink-0" />
+              <XIcon
+                size={16}
+                strokeWidth={1.5}
+                className="text-error mt-0.5 flex-shrink-0"
+              />
             )}
             <div>
               <p className="text-sm text-ink-primary">{d.question as string}</p>

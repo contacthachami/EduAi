@@ -1,6 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -8,21 +8,21 @@
 
 @layer base {
   :root {
-    --bg-primary: #F7F5F2;
-    --bg-secondary: #EFEDE9;
-    --bg-card: #FFFFFF;
-    --text-primary: #1A1816;
-    --text-secondary: #6B6560;
-    --text-muted: #A09890;
-    --accent: #C4622D;
-    --accent-light: #F2E8E1;
-    --accent-hover: #A84E23;
-    --border: #E2DDD8;
-    --border-strong: #C8C0B8;
-    --success: #2D6A4F;
-    --success-light: #D8F3DC;
-    --error: #9B2226;
-    --error-light: #FFCCD5;
+    --bg-primary: #f7f5f2;
+    --bg-secondary: #efede9;
+    --bg-card: #ffffff;
+    --text-primary: #1a1816;
+    --text-secondary: #6b6560;
+    --text-muted: #a09890;
+    --accent: #c4622d;
+    --accent-light: #f2e8e1;
+    --accent-hover: #a84e23;
+    --border: #e2ddd8;
+    --border-strong: #c8c0b8;
+    --success: #2d6a4f;
+    --success-light: #d8f3dc;
+    --error: #9b2226;
+    --error-light: #ffccd5;
   }
 
   html {
@@ -36,12 +36,16 @@
     line-height: 1.6;
   }
 
-  h1, h2, h3, h4 {
+  h1,
+  h2,
+  h3,
+  h4 {
     @apply font-display;
     line-height: 1.2;
   }
 
-  code, pre {
+  code,
+  pre {
     @apply font-mono;
   }
 
@@ -96,14 +100,19 @@
 
   /* Curseur clignotant pour la génération */
   .typing-cursor::after {
-    content: '▊';
+    content: "▊";
     @apply text-accent;
     animation: blink 1s step-end infinite;
   }
 
   @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0; }
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
   }
 }
 

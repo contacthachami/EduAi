@@ -1,0 +1,123 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-primary: #F7F5F2;
+    --bg-secondary: #EFEDE9;
+    --bg-card: #FFFFFF;
+    --text-primary: #1A1816;
+    --text-secondary: #6B6560;
+    --text-muted: #A09890;
+    --accent: #C4622D;
+    --accent-light: #F2E8E1;
+    --accent-hover: #A84E23;
+    --border: #E2DDD8;
+    --border-strong: #C8C0B8;
+    --success: #2D6A4F;
+    --success-light: #D8F3DC;
+    --error: #9B2226;
+    --error-light: #FFCCD5;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply font-body text-ink-primary bg-bg-primary;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-display;
+    line-height: 1.2;
+  }
+
+  code, pre {
+    @apply font-mono;
+  }
+
+  ::selection {
+    background-color: var(--accent-light);
+    color: var(--text-primary);
+  }
+}
+
+@layer components {
+  .page-container {
+    @apply max-w-content mx-auto px-8;
+  }
+
+  .card {
+    @apply bg-bg-card rounded-card shadow-card;
+    border: 1px solid var(--border);
+  }
+
+  .card:hover {
+    @apply shadow-card-hover;
+  }
+
+  .btn-primary {
+    @apply bg-accent text-white font-body font-medium px-5 py-2.5 rounded-card;
+    transition: background-color 0.2s ease;
+  }
+
+  .btn-primary:hover {
+    @apply bg-accent-hover;
+  }
+
+  .btn-ghost {
+    @apply text-ink-secondary font-body font-medium px-4 py-2 rounded-card;
+    transition: all 0.2s ease;
+  }
+
+  .btn-ghost:hover {
+    @apply text-accent bg-accent-light;
+  }
+
+  .footnote {
+    @apply text-xs text-ink-muted font-mono;
+    letter-spacing: 0.01em;
+  }
+
+  .tag {
+    @apply inline-block text-xs font-medium px-2.5 py-1 rounded-card;
+    background-color: var(--accent-light);
+    color: var(--accent);
+  }
+
+  /* Curseur clignotant pour la génération */
+  .typing-cursor::after {
+    content: '▊';
+    @apply text-accent;
+    animation: blink 1s step-end infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+}
+
+/* Scrollbar sobre */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--border-strong);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--text-muted);
+}

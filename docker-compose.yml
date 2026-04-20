@@ -1,0 +1,48 @@
+version: "3.9"
+
+services:
+  # ── MongoDB ──────────────────────────────
+  mongodb:
+    image: mongo:7
+    container_name: eduai-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    restart: unless-stopped
+
+  # ── Backend FastAPI ──────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: eduai-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./models_cache:/app/models_cache
+    environment:
+      - MONGODB_URL=mongodb://mongodb:27017
+      - MONGODB_DB_NAME=eduai_db
+      - HF_HOME=/app/models_cache
+      - TRANSFORMERS_CACHE=/app/models_cache
+      - ALLOWED_ORIGINS=http://localhost:3000
+    depends_on:
+      - mongodb
+    restart: unless-stopped
+
+  # ── Frontend Next.js ─────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: eduai-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  mongo_data:

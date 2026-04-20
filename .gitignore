@@ -1,0 +1,40 @@
+# Environnements virtuels
+venv/
+.venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Node
+node_modules/
+.next/
+out/
+
+# Modèles ML (trop lourds pour Git)
+models_cache/
+*.faiss
+
+# Données
+data/faiss_indexes/*.faiss
+data/sample_courses/*.pdf
+
+# Environnement
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+mongo_data/

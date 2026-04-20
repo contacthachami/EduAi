@@ -141,6 +141,16 @@ async def delete_cached_summary(course_id: str) -> None:
     await db.summaries.delete_many({"course_id": course_id})
 
 
+async def update_course_status(course_id: str, status: str) -> None:
+    """Met à jour le statut d'un cours (processing / ready)."""
+    from bson import ObjectId
+    db = get_db()
+    await db.courses.update_one(
+        {"_id": ObjectId(course_id)},
+        {"$set": {"status": status}},
+    )
+
+
 async def save_quiz(quiz_data: dict) -> None:
     db = get_db()
     await db.quizzes.insert_one(quiz_data)

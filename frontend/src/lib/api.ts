@@ -20,6 +20,7 @@ export interface CourseInfo {
 
 export interface CourseDetail extends CourseInfo {
   chapters: string[];
+  status: "processing" | "ready" | "error";
 }
 
 export interface CourseUploadResponse {

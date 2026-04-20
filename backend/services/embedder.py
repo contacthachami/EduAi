@@ -27,7 +27,7 @@ def _get_model():
     return _model
 
 
-def embed_texts(texts: list[str], batch_size: int = 32) -> np.ndarray:
+def embed_texts(texts: list[str], batch_size: int = 128) -> np.ndarray:
     """Encode une liste de textes en vecteurs normalisés.
 
     Args:

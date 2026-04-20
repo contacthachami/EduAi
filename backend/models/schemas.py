@@ -30,6 +30,7 @@ class CourseDetail(BaseModel):
     chunks_count: int
     pages: int
     chapters: List[str]
+    status: str = "ready"
 
 
 # ── Questions / Réponses ───────────────────────────

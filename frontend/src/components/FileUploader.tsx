@@ -50,7 +50,7 @@ export default function FileUploader({ onUploadComplete }: FileUploaderProps) {
     if (!file || !courseName.trim()) return;
     setUploading(true);
     setError(null);
-    setProgress("Extraction du texte…");
+    setProgress("Extraction du texte et découpage…");
 
     try {
       const result = await uploadCourse(file, courseName.trim());

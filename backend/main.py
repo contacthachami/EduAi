@@ -4,8 +4,13 @@ Charge les modèles ML au démarrage, configure CORS,
 enregistre les routers.
 """
 
-import logging
 import os
+
+# ── Désactiver les requêtes réseau HuggingFace (modèles déjà en cache local) ──
+os.environ["HF_HUB_OFFLINE"] = "1"
+os.environ["TRANSFORMERS_OFFLINE"] = "1"
+
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -34,9 +39,12 @@ async def lifespan(app: FastAPI):
     await connect_db()
     logger.info("MongoDB connecté.")
 
-    # Les modèles ML sont chargés paresseusement (lazy) lors du premier appel API.
-    # Évite les téléchargements bloquants au démarrage (~3 GB de modèles).
-    logger.info("Démarrage en mode dev — modèles ML chargés à la demande.")
+    # Pré-charger le modèle d'embeddings (le plus utilisé : upload, Q&A)
+    import asyncio
+    logger.info("Pré-chargement du modèle d'embeddings…")
+    from backend.services.embedder import embed_query
+    await asyncio.to_thread(embed_query, "warmup")
+    logger.info("Modèle d'embeddings prêt.")
 
     yield
 

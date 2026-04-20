@@ -5,7 +5,7 @@ import axios from "axios";
 
 const api = axios.create({
   baseURL: "/api",
-  timeout: 300_000, // 5 min pour les opérations ML lourdes (embeddings)
+  timeout: 600_000, // 10 min pour la première génération de résumés (32 chapitres sur CPU)
 });
 
 // ── Types ──────────────────────────────────────────
@@ -53,6 +53,7 @@ export interface ChapterSummary {
 
 export interface SummaryResponse {
   course_id: string;
+  status: "ready" | "generating";
   chapters: ChapterSummary[];
 }
 

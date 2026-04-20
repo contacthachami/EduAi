@@ -79,6 +79,8 @@ async def delete_course_by_id(course_id: str) -> bool:
         await db.chunks.delete_many({"course_id": course_id})
         # Supprimer les sessions QA
         await db.qa_sessions.delete_many({"course_id": course_id})
+        # Supprimer les résumés en cache
+        await db.summaries.delete_many({"course_id": course_id})
         return result.deleted_count > 0
     except Exception:
         return False
@@ -114,6 +116,29 @@ async def get_qa_history(session_id: str) -> list[dict]:
     if doc:
         return doc.get("exchanges", [])
     return []
+
+
+async def get_cached_summary(course_id: str) -> dict | None:
+    """Récupère les résumés mis en cache pour un cours."""
+    db = get_db()
+    return await db.summaries.find_one({"course_id": course_id})
+
+
+async def save_cached_summary(course_id: str, chapters: list[dict]) -> None:
+    """Sauvegarde les résumés générés en cache."""
+    from datetime import datetime, timezone
+    db = get_db()
+    await db.summaries.replace_one(
+        {"course_id": course_id},
+        {"course_id": course_id, "chapters": chapters, "created_at": datetime.now(timezone.utc)},
+        upsert=True,
+    )
+
+
+async def delete_cached_summary(course_id: str) -> None:
+    """Supprime le cache de résumés pour un cours."""
+    db = get_db()
+    await db.summaries.delete_many({"course_id": course_id})
 
 
 async def save_quiz(quiz_data: dict) -> None:

@@ -72,7 +72,8 @@ class ChapterSummary(BaseModel):
 
 class SummaryResponse(BaseModel):
     course_id: str
-    chapters: List[ChapterSummary]
+    status: str = "ready"  # "ready" | "generating"
+    chapters: List[ChapterSummary] = []
 
 
 # ── Quiz ───────────────────────────────────────────

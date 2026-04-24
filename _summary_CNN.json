@@ -1,0 +1,243 @@
+{
+  "course_id": "69e8ab5bcc7caaec228d6848",
+  "status": "ready",
+  "chapters": [
+    {
+      "title": "Avantages   des   CNN   vs   MLP   :   Exemples   Concrets",
+      "summary": "• Avantages des CNN vs MLP: Exemples Concrets Deep Learning Chapitre: Réseaux de Neurones Convolutifs Introduction et Motivation Opération de Convolution Architecture fondamentale des CNNs / Problème des MLP sur les images Redondance des connexions: MLP: Chaque pixel connecté à tous les neurones su...\n• Exemple: Un pixel dans le coin supérieur gauche d'une image est connecté à des neurones qui détectent des motifs complètement différents dans le coin inférieur droit.\n• Manque d'invariance translationnelle: Exemple: Un chat centré vs décalé de pixels.\n• Problème: Trop de paramètres pour si peu de données / Démonstration de l'Invariance Translationnelle Même chat, positions différentes CNN: Reconnaît le chat dans les cas MLP: Doit apprendre séparément chaque position Chat centré Pourquoi?\n• Conclusion L'architecture des CNN correspond parfaitement aux propriétés des images: motifs locaux, et invariance translationnelle .",
+      "pages": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "key_concepts": [
+        "MLP",
+        "CNN",
+        "RGB",
+        "Biais",
+        "Chat",
+        "Concrets Deep"
+      ]
+    },
+    {
+      "title": "Domaines   d'application   :   Classification   d'images",
+      "summary": "• Domaines d'application: Classification d'images Définition Assigner une étiquette unique à une image entière parmi un ensemble de classes prédéfinies.\n• Exemples Concrets Sécurité: Détection de personnes dans un bâtiment Transport: Véhicules et piétons dans la rue Agriculture: Détection de mauvaises herbes Défis Échelle variable des objets Occlusions (objets cachés) Détection d'objets Temps réel pour les applications mobiles / Le stride est le no...\n• Il contrôle la résolution de la feature map de sortie.\n• Modalités d'imagerie Radiographie: Dépistage cancer, fractures IRM/CT-Scan: Tumeurs, lésions cérébrales IRM cérébrale Histologie: Analyse de tissus au microscope Rétinographie: Dépistage diabète Applications Spécifiques Détection précoce de cancers Segmentation d'organes Tumeur segmentée Assistan...\n• / Résultat Final et Interprétation Interprétation des Résultats Valeurs négatives: Transition sombre clair Valeurs positives: Transition clair sombre Valeurs proches de: Région uniforme Un seul filtre peut extraire un type de caractéristiques spécifique (bords verticaux seulement par exemple) / 69.",
+      "pages": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        18
+      ],
+      "key_concepts": [
+        "IRM",
+        "Domaines d'application",
+        "Classe Probabilité",
+        "Feature map",
+        "Faciale Définition",
+        "Défis Techniques et Éthiques"
+      ]
+    },
+    {
+      "title": "Filtre   de   bords   horizontaux",
+      "summary": "• Feature Map Résultante Filtre horizontal   1 0 0 − − − Caractéristiques: Répond aux transitions verticales Sensible aux lignes horizontales Ignore les zones uniformes Application: Détection d'horizons Séparation ciel/mer Lignes de plancher/mur / aux transitions horizontales Sensible aux lignes ...\n• Feature Map Résultante Filtre de texture (exemple)   − 0 − 4 − 0 − 0 Application: Classification de matériaux Segmentation régionale Analyse de surfaces Motifs texturaux détectés / (2,1) (2,2) (2,3) (2,4) (3,0) (3,1) (3,2) (3,3) (3,4) (4,0) (4,1) (4,2) (4,3) (4,4) Avec stride=2.\n• / Troisième fenêtre (2,0) à (3,1)  Quatrième fenêtre (2,2) à (3,3)      3 1 2 3 1 2 6 4 3 1 2 3 1 2 6 4 Max = Max = Valeurs: 2, 1, 3, Maximum = Valeurs: 5, 2, 1.",
+      "pages": [
+        14,
+        15,
+        16,
+        17,
+        19,
+        24
+      ],
+      "key_concepts": [
+        "Filtre",
+        "Quatrième fenêtre",
+        "Détection d'horizons",
+        "Détecte",
+        "Détection de montants",
+        "Feature Map"
+      ]
+    },
+    {
+      "title": "Suite   du   Calcul   Stride   =   2",
+      "summary": "• Comparaison Max vs Average Pooling Max Pooling: [4, 7, 6, 5] préserve les pics Average Pooling: [2.5, 3.25, 3.0, 3.0] lisse les valeurs Même réduction dimensionnelle (75%), e et différent / 69.",
+      "pages": [
+        20,
+        21,
+        22,
+        23,
+        25,
+        26
+      ],
+      "key_concepts": [
+        "CNN",
+        "Average Pooling",
+        "Quatrième fenêtre",
+        "Feature Map Résultante",
+        "Stride=2 Entrée",
+        "Maximum = Valeurs"
+      ]
+    },
+    {
+      "title": "Global   Pooling",
+      "summary": "• Exemple avec feature maps Réduire chaque feature map entière à une seule valeur scalaire.\n• Sans Global Pooling: Ö Ö = 25,088 neurones FC layer énorme Avec Global Pooling: valeurs seulement réduction de 98%!\n• / Réseaux de neurones convolutif pour classification Architecture typique Bloc de convolution Entrée −.\n• / Le modèle est trop simple pour capturer les caractéristiques pertinentes des données.\n• Trop élevé ⇒ oscillations) Données d'entrée non pertinentes ou mal pré-traitées Augmenter la complexité du modèle (plus de couches / filtres) Entraîner plus longtemps, ajuster le learning rate Améliorer / enrichir les données d'entrée / 69.",
+      "pages": [
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33
+      ],
+      "key_concepts": [
+        "Couches",
+        "Global Pooling",
+        "Max Global",
+        "Feature maps",
+        "Entraînement",
+        "Entrée"
+      ]
+    },
+    {
+      "title": "Exemple   de   Sous-Apprentissage",
+      "summary": "• Architecture choisie: CNN avec seule couche conv.\n• Résultat: Performance médiocre dès le départ Résultats observés Métrique Entraînement Validation Accuracy 62.3 % 60.1 % Loss (Cross-Entropy) 1.42 1.49 Les deux erreurs sont élevées et similaires ⇒ signe de sous-apprentissage Le modèle confond les chi res similaires (3/8, 4/9.\n• / Causes Fréquentes Le modèle mémorise les données d'entraînement (y compris le bruit) au lieu d'apprendre des caractéristiques généralisables.\n• Excellente performance sur les données d'entraînement Mauvaise performance sur les données de validation/test Écart important entre les deux erreurs Accuracy entraînement ≈ %, test ≪ entraînement L'erreur d'entraînement continue de baisser.",
+      "pages": [
+        34,
+        35,
+        36
+      ],
+      "key_concepts": [
+        "MNIST",
+        "CNN",
+        "Écart important",
+        "Couche conv",
+        "Erreurs",
+        "Entraînement"
+      ]
+    },
+    {
+      "title": "Diagnostic   Visuel   :   Courbes   d'Apprentissage",
+      "summary": "• Diagnostic Visuel: Courbes d'Apprentissage Sur-apprentissage Sous-apprentissage Entraîn.\n• Divergence (sur-appr.) Perte Perte Les deux courbes restent élevées 10 30 50 0 20 40 0 Époques Époques Si les courbes entraînement / validation sont toutes deux élevées ⇒ sous-apprentissage.\n• Si elles convergent vers une valeur basse ⇒ bon apprentissage.\n• / Points importants Valeurs typiques de p Type de couche p Dropout est désactivé en phase de test/inférence Augmente le temps d'entraînement ( ×.\n• Couche d'entrée 0.0 0.2 Couches cachées 0.2 0.5 Couches convolutives 0.1 0.3 Couches denses (FC) 0.3 0.5 Ne pas appliquer à la couche de sortie Entraînement Test / Inférence Masquer neurones Tous les neurones actifs / Pourquoi pénaliser les grands poids?",
+      "pages": [
+        37,
+        38,
+        39,
+        40
+      ],
+      "key_concepts": [
+        "Dropout",
+        "Poids",
+        "Tous les neurones actifs",
+        "Couche",
+        "Diagnostic Visuel",
+        "Apprentissage Sur-apprentissage"
+      ]
+    },
+    {
+      "title": "Solution   Over-fitting   :   Régularisation   L2   (Ridge   /   Weight Decay)",
+      "summary": "• La solution tombe souvent sur un coin ⇒ w =.\n• C'est ce qui crée la parcimonie .\n• / Idée clé (Io\u001be & Szegedy, 2015) Normaliser les activations de chaque couche à chaque mini-batch pour stabiliser et accélérer l'entraînement.\n• Si le réseau a besoin d'une distribution différente de N (, ), il peut apprendre à la restaurer via γ et β .\n• Réduit la sensibilité à l'initialisation des poids Ordre typique: Conv.\n• Pool Comportement différent en entraînement vs inférence / En inférence: utiliser la moyenne.",
+      "pages": [
+        41,
+        42,
+        43,
+        44,
+        45,
+        46
+      ],
+      "key_concepts": [
+        "Poids",
+        "CNN",
+        "Features corrélées",
+        "Solution Over-fitting",
+        "Ridge",
+        "Weight Decay"
+      ]
+    },
+    {
+      "title": "Principe",
+      "summary": "• Surveiller l'erreur de validation pendant l'entraînement et arrêter lorsqu'elle commence à augmenter, même si l'erreur d'entraînement continue de baisser.\n• Patience = nombre d'époques sans amélioration tolérées Trop faible ⇒ arrêt prématuré / Récapitulatif des Solutions au Sur-Apprentissage Technique Mécanisme Hyperparamètre Coût Combinable?\n• Arrêt sur validation patience Aucun Toujours + Early Stopping sur l'ensemble de l'entraînement Conv2D + L2 + L2 Dropout Batch Norm ReLU Pool · · · Dense Recette typique CNN moderne: BN après chaque couche conv, Dropout après les couches denses, L2 (weight decay) dans l'optimiseur.\n• Élevée Très faible Erreur validation Élevée (similaire) Élevée (diverge) Écart train/val Faible Grand Biais / Variance Biais élevé Variance élevée Problème Modèle trop simple Modèle trop complexe Solutions ↑ complexité, ↑ époques, transfer learning Dropout, L2, data augmentation.\n• Oui Non Sous-apprentissage Écart train/val grand?\n• / Conséquences immédiates Gradients deviennent extrêmement grands Mise à jour trop importante des poids Poids initialisés avec de grandes valeurs Réseaux très profonds Taux d'apprentissage trop élevé Pas de normalisation des gradients Overflow numérique: valeurs NaN ou Inf Instabilité: perte qui ...",
+      "pages": [
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54
+      ],
+      "key_concepts": [
+        "CNN",
+        "Dropout",
+        "Early Stopping",
+        "Vanishing",
+        "Gradients",
+        "Écart train"
+      ]
+    },
+    {
+      "title": "Indicateurs",
+      "summary": "• Indicateurs Perte devient NaN ou infinie Gradients > 6 Pour un réseau avec L couches linéaires (simpli é): L Y ∂ a L × ∂ L ∂ W = ∂ L k = W k Exemple numérique: couches avec W k = .\n• Architectures stables gradient = ( gradient si ∥ gradient ∥≤ τ τ · gradient ∥ gradient ∥ sinon Limite la norme du gradient à τ .\n• He Initialization: N (, p / n l ) Xavier/Glorot: N (, p / ( n l + n l + )) Garantit des variances constantes Skip Connections (Res Net) Batch Normalization Couches de normalisation / Distribution recommandée Lors de l'initialisation aléatoire des poids: Variance des activations change à chaque co...\n• / Dérivation Poids indépendants et identiquement distribués Entrées indépendantes et centrées Fonction d'activation linéaire au voisinage de Pas de biais ou biais initialisés à Pour une sortie y = P n i = w i x i: Var ( y ) = n · Var ( w ) · Var ( x ) Pour avoir Var ( y ) = Var ( x ): Var ( w ) =...\n• Limitations Conçue pour fonctions d'activation symétriques (tanh) Moins efficace pour ReLU (demi-variance) / 69.",
+      "pages": [
+        55,
+        56,
+        57,
+        58,
+        59
+      ],
+      "key_concepts": [
+        "Gradients",
+        "MNIST",
+        "Couches",
+        "Variances",
+        "Batch Normalization",
+        "Distribution"
+      ]
+    },
+    {
+      "title": "Formules   d'initialisation",
+      "summary": "• Pour une couche avec n in entrées: Normal: W ∼N, q n in Uniforme: W ∼U n in n in, / Batch Normalization: Principe et Avantages Problème du Internal Covariate Shift Distribution des entrées change pendant l'entraînement Les couches doivent constamment s'adapter Ralentit la convergence Nécessite de...\n• Inadapté aux RNN/Transformers Comportement différent entraînement/test Principe de Layer Normalization Normaliser sur les features plutôt que sur le batch: H X µ l = i = x i (moyenne sur les features) H X σ l = i = ( x i − µ l ) (variance sur les features) ˆ x i = x i − µ l p σ l + ϵ y i = γ ˆ x ...\n• / Visualisation des normalisations Indépendant de la taille du batch Applicable aux RNN et Transformers Même comportement entraînement/test Excellente alternative pour petits batches Layer Norm Batch Norm Normalisation Normalisation Batch Batch Features Features / 69.",
+      "pages": [
+        60,
+        61,
+        62,
+        63,
+        64
+      ],
+      "key_concepts": [
+        "RNN",
+        "Zéro Variance",
+        "Conv BN",
+        "Petits batches",
+        "Feature",
+        "Xavier"
+      ]
+    },
+    {
+      "title": "Résumé   et   Recommandations",
+      "summary": "• Solutions Niveau données: Niveau algorithme: Sur-échantillonnage des minoritaires Pénalités de classe (class weights) Sous-échantillonnage des majoritaires Fonctions de perte adaptées (Focal Loss) Génération synthétique (SMOTE) Métriques adaptées (F1-score.",
+      "pages": [
+        65,
+        66,
+        67,
+        68,
+        69
+      ],
+      "key_concepts": [
+        "GPU",
+        "CAM",
+        "SMOTE",
+        "Cun Initialization",
+        "Focal Loss",
+        "Problèmes éthiques et réglementaires"
+      ]
+    }
+  ]
+}

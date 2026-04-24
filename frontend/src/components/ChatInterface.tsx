@@ -10,7 +10,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Send, RotateCcw } from "lucide-react";
+import { Send, RotateCcw, Sparkles } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import { useChat, type ChatMessage } from "@/hooks/useChat";
 import SourceCard from "./SourceCard";
 
@@ -160,16 +161,67 @@ function MessageBubble({
           </span>
         ) : (
           <>
-            <p className="text-sm leading-relaxed whitespace-pre-wrap">
-              {message.content}
-            </p>
+            <div className="text-sm leading-relaxed">
+              <ReactMarkdown
+                components={{
+                  p: ({ children }) => (
+                    <p className="my-1.5 first:mt-0 last:mb-0 whitespace-pre-wrap">
+                      {children}
+                    </p>
+                  ),
+                  ul: ({ children }) => (
+                    <ul className="my-2 space-y-1 list-none">{children}</ul>
+                  ),
+                  ol: ({ children }) => (
+                    <ol className="my-2 space-y-1 list-decimal list-inside">
+                      {children}
+                    </ol>
+                  ),
+                  li: ({ children }) => (
+                    <li className="flex gap-2">
+                      <span className="text-accent shrink-0">•</span>
+                      <span>{children}</span>
+                    </li>
+                  ),
+                  strong: ({ children }) => (
+                    <strong className="font-semibold text-ink-primary">
+                      {children}
+                    </strong>
+                  ),
+                  em: ({ children }) => <em className="italic">{children}</em>,
+                  code: ({ children }) => (
+                    <code className="bg-bg-secondary px-1 rounded text-xs font-mono">
+                      {children}
+                    </code>
+                  ),
+                }}
+              >
+                {message.content || ""}
+              </ReactMarkdown>
+              {message.isStreaming && (
+                <span className="inline-block w-2 h-4 bg-accent ml-0.5 animate-pulse align-middle" />
+              )}
+            </div>
 
-            {/* Confiance */}
-            {message.confidence !== undefined && message.confidence > 0 && (
-              <p className="text-xs text-ink-muted mt-2">
-                Confiance : {Math.round(message.confidence * 100)}%
-              </p>
-            )}
+            {/* Badge IA + Confiance */}
+            {(message.llmUsed !== undefined ||
+              message.confidence !== undefined) &&
+              !message.isStreaming && (
+                <div className="flex items-center gap-2 mt-2 flex-wrap">
+                  {message.llmUsed && (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider text-accent bg-accent-light/40 px-1.5 py-0.5 rounded">
+                      <Sparkles size={10} strokeWidth={2} />
+                      Généré par IA locale
+                    </span>
+                  )}
+                  {message.confidence !== undefined &&
+                    message.confidence > 0 && (
+                      <span className="text-xs text-ink-muted">
+                        Confiance : {Math.round(message.confidence * 100)}%
+                      </span>
+                    )}
+                </div>
+              )}
 
             {/* Sources en footnotes */}
             {message.sources && message.sources.length > 0 && (

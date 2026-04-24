@@ -108,9 +108,7 @@ export default function CoursePage() {
         <h1 className="font-display text-2xl font-bold text-ink-primary mt-4">
           {course.name}
         </h1>
-        <p className="text-xs text-ink-muted mt-1">
-          {course.pages} pages · {course.chapters.length} chapitres
-        </p>
+        <p className="text-xs text-ink-muted mt-1">{course.pages} pages</p>
       </motion.div>
 
       {/* Indexation en cours */}

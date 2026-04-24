@@ -1,0 +1,285 @@
+{
+  "course_id": "69e6ab9fe8eaf33994528fae",
+  "status": "ready",
+  "chapters": [
+    {
+      "title": "Plan",
+      "summary": "• CADI AYYAD Rappels de Machine Le perceptron et les neurones artificiels Fonctions d’activation Fonction coût Algorithme du Gradient Descent Métriques d’évaluation Architecture des réseaux multicouches (MLP) Propagation avant Rétropropagation (Backpropagation) Variantes de la descente de gradient ...\n• Les trois types d’apprentissage Supervisé Non Supervisé Par Renforcement Agent + Environnement Récompenses Données étiquetées { ( x i.\n• L’objectif est d’apprendre une fonction f telle que f ( x ) ≈ y .\n• Classification (sortie discrète) Régression (sortie continue) Ex: Prédiction du prix d’une maison Ex: Estimation de la température Ex: Email spam/non-spam Ex: Diagnostic médical (malade/sain) Apprentissage Non Supervisé Définition L’algorithme analyse les données sans labels pour découvrir des st...\n• Clustering (Regroupement) Réduction de dimension 3D 2D Applications concrètes Segmentation marketing: Grouper les clients par comportement d’achat Compression d’images: Réduire les dimensions tout en préservant l’information Détection de fraude: Identifier les transactions anormales.",
+      "pages": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "key_concepts": [
+        "CADI",
+        "MLP",
+        "SGD",
+        "Robots autonomes",
+        "Algorithme",
+        "AYYAD"
+      ]
+    },
+    {
+      "title": "Apprentissage   par   Renforcement",
+      "summary": "• Il reçoit des récompenses (positives ou négatives) et cherche à maximiser la récompense cumulative.\n• Récompense Où se situe le chapitre (Réseaux de Neurones Artificiels)?\n• Les réseaux de neurones artificiels peuvent être utilisés dans les trois types d’apprentissage.\n• Du Machine Learning au Deep Learning = Réseaux de neurones profonds Utilise des réseaux de neurones à plusieurs couches Capable d’ extraire automatiquement les caractéristiques des données en entrée.\n• Activation Synapses: Connexions à d’autres neurones x w w x P y w x Du biologique à l’artificiel Le perceptron est une simplification mathématique du neurone biologique, proposée par Frank Rosenblatt en 1957.",
+      "pages": [
+        11,
+        12,
+        13,
+        14,
+        15,
+        16
+      ],
+      "key_concepts": [
+        "Neurones",
+        "Sommation pondérée",
+        "Récompenses",
+        "GPU",
+        "Robots industriels",
+        "Interactions"
+      ]
+    },
+    {
+      "title": "Histoire   du   Perceptron",
+      "summary": "• , w = 3, b = − Décision Avec fonction d’activation sigmoïde: σ (0 .\n• ( σ à voir dans le paragraphe suivant) ⇒ 66% de probabilité d’être un spam ⇒ Classé comme spam!\n• Interprétation des poids w = .\n• Signifie 78% de probabilité d’être diabétique Seuil de décision: si σ ( z ) > .\n• ⇒ diagnostic positif Usage: Classification binaire.",
+      "pages": [
+        17,
+        18,
+        19,
+        20,
+        21
+      ],
+      "key_concepts": [
+        "XOR",
+        "Classification binaire",
+        "MLP",
+        "Interprétation probabiliste",
+        "Spam",
+        "Perceptron"
+      ]
+    },
+    {
+      "title": "Fonction   Tanh",
+      "summary": "• Efficacité: Pas d’exponentielle, juste une comparaison Sparsité: 50% des neurones sont à zéro ⇒ représentation plus efficace Usage: Peut être utilisée pour la régression.\n• Définition La fonction de coût (ou perte) mesure l’écart entre les prédictions du modèle ˆ y et les vraies valeurs y .\n• L’objectif de l’apprentissage est de minimiser cette fonction.\n• Données SANS outlier Données AVEC outlier y i (réel) ˆ y i (prédit) erreur y i (réel) ˆ y i (prédit) erreur 37 42 -2 39 45 -2 41 35 2 40 -2 39 45 -2 41 -79 MSE = 4+4+1+4+1 MSE = 4+4+1+4+ 6241 = .\n• Observation Un seul outlier fait exploser le MSE ( × 447) mais augmente modérément le MAE ( × 11).",
+      "pages": [
+        22,
+        23,
+        24,
+        25,
+        26,
+        27
+      ],
+      "key_concepts": [
+        "MAE",
+        "MSE",
+        "Dérivée",
+        "ReLU",
+        "Tanh",
+        "Graphe"
+      ]
+    },
+    {
+      "title": "Exemple   :   Prédiction   de   Température",
+      "summary": "• Exemple: Prédiction de Température Scénario Capteur de température avec une mesure défectueuse (erreur de transmission).\n• Pourquoi Cross-Entropy plutôt que MSE?\n• ⇒ Cross-entropy pénalise plus sévèrement les erreurs graves Descente de Gradient / Descente de Gradient Principe de la descente de gradient Idée intuitive Imaginez que vous êtes au sommet d’une montagne dans le brouillard.\n• Pour descendre, vous suivez la pente la plus forte vers le bas à chaque pas.\n• Exemple numérique: Minimisation 1D Problème: Minimiser J ( w ) = w + w + avec w = 3, α = .\n• Définition Tableau qui résume les prédictions d’un classifieur par rapport aux vraies valeurs.",
+      "pages": [
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41
+      ],
+      "key_concepts": [
+        "MSE",
+        "MAE",
+        "Chats",
+        "SGD",
+        "Cross-Entropy",
+        "Convergence"
+      ]
+    },
+    {
+      "title": "C onfiguration   initiale",
+      "summary": "• Mise à jour des poids erreur = y vrai − y pred = − = ✓ Correct!\n• On continue avec les étudiants C et D, puis on répète (plusieurs époques) jusqu’à convergence.\n• Limitation du perceptron simple Un seul neurone ne peut créer qu’une frontière linéaire (droite, plan, hyperplan).\n• Rôle fondamental Les fonctions d’activation introduisent de la non-linéarité dans le réseau, permettant d’apprendre des patterns complexes.\n• Sans fonction d’activation Un réseau de plusieurs couches se réduit à une simple transformation linéaire!",
+      "pages": [
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50
+      ],
+      "key_concepts": [
+        "MLP",
+        "Couches",
+        "Activation",
+        "Neurone",
+        "Données d’entraînement Étudiant",
+        "Admission"
+      ]
+    },
+    {
+      "title": "Théorème   d’approximation   universelle",
+      "summary": "• One-Hot Encoding: Représentation des classes Principe Transformer une variable catégorielle en un vecteur binaire où une seule composante vaut.\n• Pas d’ordre implicite: chaque coordonnées représente une classe.\n• Fonction d’activation Softmax,, 0] Définition La fonction softmax transforme un vecteur de scores réels en une distribution de probabilités .\n• , z K ] sont les scores (logits) de la dernière couche.\n• Propriétés Exemple numérique Scores: z = [2 ., ., .\n• Sigmoid Softmax Classification binaire Multi-label Classification multi-classes Mutuellement exclusives Exemples: Exemples: Spam ou non?\n• Le réseau prédit une probabilité de 54.5% pour la classe positive.",
+      "pages": [
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67
+      ],
+      "key_concepts": [
+        "Couche",
+        "MNIST",
+        "BCE",
+        "CCE",
+        "Neurones",
+        "Sortie"
+      ]
+    },
+    {
+      "title": "Backpropagation   :   Dérivation   mathématique   (1/3)",
+      "summary": "• J w [ ℓ +1] ik a [ ℓ ] k + b [ ℓ +1] i, alors: On sait que: z [ ℓ +1] i = P ∂ z [ ℓ +1] i ∂ a [ ℓ ] j = w [ ℓ +1] ij Par la règle de la chaîne (somme sur tous les neurones de la couche ℓ ): ∂ L ∂ L n ℓ +1 X n ℓ +1 X i =1 i =1 δ [ ℓ +1] i w [ ℓ ] ij ∂ a [ ℓ ] j = ∂ z [ ℓ +1] i · ∂ z [ ℓ +1] i ∂ a ...\n• Donc, il faut d’abord trouver ∂ L ∂ a [ ℓ ] .\n• ) Complexité et efficacité Exercice: Réseau minimal: entrée.\n• Pour L = 10, n =: facteur = × 2 = 000 fois plus rapide!\n• Backpropagation rend l’apprentissage des réseaux profonds computationnellement faisable .",
+      "pages": [
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76
+      ],
+      "key_concepts": [
+        "MSE",
+        "Couche",
+        "Gradient",
+        "Cross-Entropy",
+        "Softmax",
+        "Complexité"
+      ]
+    },
+    {
+      "title": "Le   Problème   d’Optimisation",
+      "summary": "• On note: g t = ∂ L ∂ w ( w t ) Limitations du SGD Oscillations dans les directions à forte courbure Progression lente dans les vallées étroites Sensibilité au choix du rate Peut rester bloqué dans des minima locaux peu profonds Motivation pour les Méthodes Adaptatives Problème avec un rate global...\n• Solution: rates adaptatifs Idée: ajuster α individuellement pour chaque paramètre selon l’historique de ses gradients.\n• Α: taux d’apprentissage Interprétation La vélocité v t est une moyenne mobile exponentielle des gradients: t X v t = i =0 β t − i g i Visualisation: SGD vs SGD + Momentum SGD SGD: fortes oscillations Momentum: faibles oscillations minimum Momentum Le momentum réduit les oscillations perpendiculai...\n• ) Les gradients anciens ont un poids exponentiellement décroissant Avec β = .: le gradient d’il y a itérations a un poids ≈ .\n• Rate (souvent 3e-4 pour transformers) β.\n• Décroissance du second moment (RMSprop) ε − Stabilité numérique En pratique Ces valeurs par défaut fonctionnent remarquablement bien α est le paramètre le plus souvent ajusté Variantes: AdamW (weight decay découplé), AMSGrad, etc.",
+      "pages": [
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86
+      ],
+      "key_concepts": [
+        "SGD",
+        "ADAM",
+        "Gradients",
+        "Interprétation",
+        "Momentum",
+        "Poids"
+      ]
+    },
+    {
+      "title": "Comparaison   Visuelle   des   Trajectoires",
+      "summary": "• Étape: Définir la Fonction de Perte (Loss) Rôle de la loss Mesure l’écart entre la prédiction ˆ y et la vraie valeur y .\n• C’est ce qu’on cherche à minimiser .\n• Au lieu de calculer le gradient sur tout le dataset (lent) ou sur un seul exemple (bruité), on utilise des mini-batches de taille B .\n• Dataset ( N exemples) ⌈ N / B ⌉ batches Batch Batch Batch Batch Batch B exemples Stochastique ( B =.\n• Gradient très bruité Rapide par itération Convergence instable Batch complet ( B = N ) Gradient exact Très lent Mémoire énorme Mini-batch ( B =,, 128) Bon compromis Parallélisable (GPU) Standard actuel.",
+      "pages": [
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95
+      ],
+      "key_concepts": [
+        "SGD",
+        "ADAM",
+        "ANN",
+        "MSE",
+        "MAE",
+        "Cross-Entropy"
+      ]
+    },
+    {
+      "title": "Qu’est-ce   qu’une   Epoch ?",
+      "summary": "• Epoch B1 B2 B3 B4 B5 Epoch B3 B1 B5 B2 B4 Shuffle Epoch B5 B4 B1 B3 B2 Shuffle entre les epochs On mélange les données entre chaque epoch pour améliorer la généralisation.\n• Contexte: Exemple: Diagnostic COVID-19 sur 1000 patients mala des réels sains réels mala des détectés Prédit + Prédit - Malade VP = FN = Sain FP = VN = 15 mala des manqués!\n• COVID: 85+15 = 100 = 85% Compromis Precision-Recall Haute Precision: Peu de fausses alertes (spam, publicité) Haut Recall: Ne manquer aucun cas positif (cancer, fraude) Quand utiliser quelle métrique?\n• F1 = × Precision × Recall Precision + Recall COVID: F1 = × .\n• = 73.6% Spécificité = VN VN + FP Parmi les vrais négatifs, combien sont correctement identifiés?\n• COVID: 855+45 = 900 = 95% Spam Haute Precision (éviter de perdre des emails importants) Cancer Haut Recall (ne manquer aucun malade) Général F1-Score (équilibre) Chimiothérapie Haute Spécificité (éviter de traiter des patients sains).",
+      "pages": [
+        96,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104
+      ],
+      "key_concepts": [
+        "COVID",
+        "Epoch",
+        "Precision",
+        "Iteration",
+        "VP VP",
+        "Recall"
+      ]
+    },
+    {
+      "title": "Définition   :   La   courbe   ROC",
+      "summary": "• ROC = Receiver Operating Characteristic Définition formelle La courbe ROC est un graphique représentant la performance d’un classificateur binaire en traçant le Taux de Vrais Positifs (TVP) en fonction du Taux de Faux Positifs (TFP) pour différents seuils de classification τ .\n• 60 Échec ⋆ < 0.50 Pire qu’aléatoire Inverser!\n• Attention: Ces seuils sont indicatifs et dépendent du domaine Un AUC de 0.75 peut être excellent en médecine mais insuffisant en détection de fraude Exemple: Diagnostic médical Exemple: Détection du cancer du sein par mammographie Modèle: Réseau de neurones analysant les images AUC typique: 0.85.\n• 95 Pourquoi l’AUC est crucial ici?\n• Classes déséquilibrées: 1% de cas positifs L’accuracy serait trompeuse (99% en prédisant toujours négatif) L’AUC évalue la capacité à distinguer mala des et sains En pratique: Seuil bas choisi (TVP ≈ 0.95) pour minimiser les cas manqués TFP accepté plus élevé.",
+      "pages": [
+        105,
+        106,
+        107,
+        108,
+        109,
+        110,
+        111
+      ],
+      "key_concepts": [
+        "AUC",
+        "TFP",
+        "TVP",
+        "Spam",
+        "ROC",
+        "Échec"
+      ]
+    }
+  ]
+}

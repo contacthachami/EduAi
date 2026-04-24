@@ -28,13 +28,24 @@ _indexing_lock = asyncio.Lock()
 
 
 async def _index_in_background(course_id: str, texts: list[str]) -> None:
-    """Génère les embeddings et crée l'index FAISS en arrière-plan."""
+    """Génère les embeddings, crée l'index FAISS, puis lance la pré-génération
+    de la fiche pédagogique et du quiz par défaut en arrière-plan."""
     try:
         logger.info("Indexation en arrière-plan pour %s (%d chunks)…", course_id, len(texts))
         embeddings = await asyncio.to_thread(embed_texts, texts)
         await asyncio.to_thread(create_index, course_id, embeddings)
         await update_course_status(course_id, "ready")
         logger.info("Indexation terminée pour le cours %s", course_id)
+
+        # ── Pré-génération LLM (fiche + quiz) en background ──
+        try:
+            from backend.routers.summary import pregenerate_summary_in_background
+            from backend.routers.quiz import pregenerate_quiz_in_background
+            asyncio.create_task(pregenerate_summary_in_background(course_id))
+            asyncio.create_task(pregenerate_quiz_in_background(course_id))
+            logger.info("Pré-génération fiche+quiz lancée pour %s", course_id)
+        except Exception:
+            logger.exception("Impossible de lancer la pré-génération LLM pour %s", course_id)
     except Exception:
         logger.exception("Erreur lors de l'indexation du cours %s", course_id)
         await update_course_status(course_id, "error")
@@ -190,3 +201,23 @@ async def delete_course(course_id: str):
     except Exception:
         pass  # L'index peut ne pas exister
     return {"status": "deleted"}
+
+
+@router.get("/{course_id}/status")
+async def get_course_content_status(course_id: str):
+    """Indique l'état de génération des contenus IA (fiche, quiz) pour un cours.
+
+    Permet au frontend de poller pour savoir quand afficher les boutons.
+    """
+    from backend.database.mongodb import get_cached_summary, get_cached_course_quiz
+    course = await get_course_by_id(course_id)
+    if not course:
+        raise HTTPException(status_code=404, detail="Cours introuvable.")
+    cached_summary = await get_cached_summary(course_id)
+    cached_quiz = await get_cached_course_quiz(course_id)
+    return {
+        "course_id": course_id,
+        "indexed": course.get("status") == "ready",
+        "summary_ready": cached_summary is not None,
+        "quiz_ready": cached_quiz is not None,
+    }

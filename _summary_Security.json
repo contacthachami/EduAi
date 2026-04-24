@@ -1,0 +1,138 @@
+{
+  "course_id": "69e77d733affbb258fce99d1",
+  "status": "ready",
+  "chapters": [
+    {
+      "title": "Objectifs du Module",
+      "summary": "• Comprendre les principes fondamentaux de la sécurité informatique, incluant les menaces, les vulnérabilités, et les mesures de protection.\n• Explorer les concepts de cryptographie appliqués à la sécurité des systèmes informatiques et des réseaux.\n• Découvrir la technologie Blockchain, son architecture, ses applications, et ses implications en matière de sécurité.\n• Appliquer les connaissances acquises pour sécuriser des applications basées sur la Blockchain.",
+      "pages": [
+        1,
+        2
+      ],
+      "key_concepts": [
+        "Technologie Blockchain",
+        "Sécurité",
+        "Transactions numériques"
+      ]
+    },
+    {
+      "title": "Plan",
+      "summary": "• Règlementations et normes en sécurité informatique ( GDPR, ISO/IEC 27001 ) Services de Sécurité Informatique.\n• Menaces et Attaques Informatiques.\n• Systèmes de détection et de surveillance: Antivirus, Pare-feu, Proxy et IDS/ IPS.",
+      "pages": [
+        3,
+        4
+      ],
+      "key_concepts": [
+        "SSL",
+        "TLS",
+        "WPA",
+        "ISO",
+        "Sécurité",
+        "IPS"
+      ]
+    },
+    {
+      "title": "Notions de base",
+      "summary": "• La sécurité informatique et la cybersécurité sont deux domaines qui visent à protéger les systèmes, les réseaux et les données contre les attaques, les intrusions, et les menaces diverses.\n• Gestion des vulnérabilités: identifier et corriger les faiblesses dans les systèmes pour réduire les possibilités d'attaque.\n• Un risque est la probabilité plus ou moins grande de voir une menace informatique se transformer en événement réel entraînant une perte d’information.\n• Une vulnérabilité est une faiblesse d'un système se traduisant par une incapacité partielle de celui-ci à faire face aux menaces informatiques qui l’espionnent.\n• Disponibilité des systèmes: garantir que les systèmes restent opérationnels et accessibles en cas d'attaque ou de défaillance.",
+      "pages": [
+        5,
+        6,
+        7,
+        8
+      ],
+      "key_concepts": [
+        "Menaces informatiques",
+        "Sécurité",
+        "IoT",
+        "Intégrité",
+        "Vulnérabilités"
+      ]
+    },
+    {
+      "title": "Services de Sécurité Informatique",
+      "summary": "• Confidentialité est le fait que les données soient consultables et lisibles uniquement pour les utilisateurs qui ont le droit d’y accéder.\n• Intégrité est garantir que les données n’ont pas subi aucune modification dès leur envoi jusqu’à leur réception.\n• L’objectif est d’empêcher tout processus ou personne non autorisée d’apporter une quelconque modification, intentionnelle ou volontaire.\n• Non-répudiation permet d’assurer que les membres d’une communication ont la possibilité d’envoyer et de recevoir l’information dans son intégralité.\n• L’authentification est un processus consistant à vérifier ou à valider l'identité d'une personne ou l'identification de toute autre entité, lors d'un échange électronique, pour contrôler l'accès à un réseau, à un système informatique.",
+      "pages": [
+        9,
+        10,
+        11,
+        12
+      ],
+      "key_concepts": [
+        "USB",
+        "Confidentialité",
+        "Non-répudiation",
+        "Possession",
+        "Attribut",
+        "Autres points"
+      ]
+    },
+    {
+      "title": "Métiers de la cyber sécurité",
+      "summary": "• Analyste en cyber sécurité: surveille les réseaux et systèmes informatiques pour détecter des anomalies et des menaces.\n• Il est également responsable de l'analyse des incidents et de la mise en place de solutions pour prévenir les attaques.\n• Ingénieur sécurité informatique: conçoit, met en place et gère les systèmes de sécurité informatique d’une organisation.\n• Architecte en cyber sécurité: conçoit l'architecture de sécurité des systèmes d'information d'une entreprise, en s'assurant qu'elle est robuste et qu'elle répond aux besoins de protection des données et des utilisateurs.\n• Spécialiste en sécurité des applications: se concentre sur la sécurité des applications développées, en identifiant les vulnérabilités potentielles dans les logiciels et en veillant à leur sécurisation.",
+      "pages": [
+        13,
+        14,
+        15,
+        16
+      ],
+      "key_concepts": [
+        "Sécurité",
+        "CISO",
+        "Chief Information",
+        "Attaques Informatiques",
+        "Cyber",
+        "Preuves informatiques"
+      ]
+    },
+    {
+      "title": "Types d’attaques Informatiques",
+      "summary": "• Phishing: tentatives pour tromper les utilisateurs et leur faire divulguer des informations sensibles comme des mots de passe ou des informations bancaires.\n• Ingénierie sociale: manipulation psychologique des individus pour obtenir des informations ou un accès aux systèmes.\n• Une «attaque interne»: une entité autorisée à accéder aux ressources mais qui les utilise d'une manière non approuvée par ceux qui ont accordé l'autorisation.\n• Une «attaque extérieure» est initiée depuis l'extérieur du périmètre, par un utilisateur non autorisé ou illégitime du système.",
+      "pages": [
+        17,
+        18
+      ],
+      "key_concepts": [
+        "DDoS",
+        "Écoutes téléphoniques",
+        "Troie",
+        "Déni de service",
+        "Phishing",
+        "Attaque active"
+      ]
+    },
+    {
+      "title": "Attaques Informatiques",
+      "summary": "• Vers (Worms): Comme les virus, mais se propagent autonomement à travers les réseaux sans avoir besoin d'un fichier hôte.\n• Chevaux de Troie (Trojan Horses): Logiciels apparemment inoffensifs qui, une fois exécutés, permettent à l'attaquant d'accéder au système.\n• Spyware ou logiciel espion: Programme qui collecte discrètement des informations sur l'utilisateur, comme ses habitudes de navigation ou ses mots de passe.\n• Détourner les ressources d'un ordinateur pour des activités malveillantes SPAM désigne tout courrier indésirable provenant d'utilisateurs inconnus ou de robots, destiné à saturer le réseau Internet.\n• Le terme \"zero-day\" signifie que l'attaque exploite une faille avant que les développeurs aient eu la possibilité de publier un correctif.\n• Il peut alors intercepter, lire, modifier ou rediriger les messages échangés entre elles, souvent sans que les deux parties ne s'en aperçoivent.\n• Server Spoofing: l’usurpation d'identité du serveur est l'acte qui consiste à détourner une communication d'un utilisateur avec serveur connue vers un autre non-confidentiel.",
+      "pages": [
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        28
+      ],
+      "key_concepts": [
+        "SQL",
+        "SPAM",
+        "Attaquant",
+        "Vulnérabilité",
+        "Victime",
+        "URL"
+      ]
+    },
+    {
+      "title": "Attack distibuée",
+      "summary": "• L'attaque par inondation (flooding) est lorsqu'un pirate génère un grand nombre des messages à envoyer à un serveur afin d'épuiser ses ressources.",
+      "pages": [
+        27,
+        29
+      ],
+      "key_concepts": [
+        "Bande passante"
+      ]
+    }
+  ]
+}

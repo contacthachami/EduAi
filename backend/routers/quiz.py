@@ -11,42 +11,118 @@ from backend.models.schemas import (
 )
 from backend.database.mongodb import (
     get_course_by_id, get_chunks_by_course, save_quiz, get_quiz,
+    get_cached_course_quiz, save_cached_course_quiz,
 )
 from backend.services.quiz_generator import generate_quiz
+from backend.services.llm_quiz import generate_quiz_llm
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+DEFAULT_NUM_QUESTIONS = 10
+
+# Track quiz pre-generations in-flight (course_id)
+_generating_quiz: set[str] = set()
+_quiz_lock = asyncio.Lock()
+
+
+async def _generate_default_quiz(course_id: str, chunks: list, num_questions: int = DEFAULT_NUM_QUESTIONS) -> list[dict] | None:
+    """Génère un quiz LLM (avec fallback extractif) et le met en cache."""
+    questions = None
+    try:
+        questions = await generate_quiz_llm(chunks, num_questions=num_questions)
+    except Exception:
+        logger.exception("LLM quiz a planté pour %s", course_id)
+        questions = None
+
+    if not questions:
+        logger.info("Fallback quiz extractif pour %s", course_id)
+        questions = await asyncio.to_thread(generate_quiz, chunks, num_questions)
+
+    if not questions:
+        return None
+
+    quiz_id = str(uuid.uuid4())
+    await save_quiz({"quiz_id": quiz_id, "course_id": course_id, "questions": questions})
+    await save_cached_course_quiz(course_id, quiz_id, questions)
+    logger.info("Quiz par défaut mis en cache pour %s (%d questions)", course_id, len(questions))
+    return questions
+
+
+async def pregenerate_quiz_in_background(course_id: str) -> None:
+    """À appeler depuis le pipeline d'upload : pré-génère le quiz par défaut."""
+    async with _quiz_lock:
+        if course_id in _generating_quiz:
+            return
+        _generating_quiz.add(course_id)
+    try:
+        # Vérifier si déjà en cache
+        cached = await get_cached_course_quiz(course_id)
+        if cached:
+            return
+        chunks = await get_chunks_by_course(course_id)
+        if not chunks:
+            logger.warning("Pas de chunks pour pré-générer le quiz de %s", course_id)
+            return
+        await _generate_default_quiz(course_id, chunks)
+    except Exception:
+        logger.exception("Erreur pré-génération quiz pour %s", course_id)
+    finally:
+        async with _quiz_lock:
+            _generating_quiz.discard(course_id)
 
 
 @router.get("/{course_id}", response_model=QuizResponse)
 async def get_course_quiz(
     course_id: str,
-    num_questions: int = Query(default=10, ge=1, le=30),
+    num_questions: int = Query(default=DEFAULT_NUM_QUESTIONS, ge=1, le=30),
+    regenerate: bool = Query(default=False, description="Forcer la régénération (ignore le cache)"),
 ):
-    """Génère un quiz pour un cours donné."""
-    # Vérifier que le cours existe
+    """Renvoie un quiz pour le cours.
+
+    - Si `num_questions == DEFAULT_NUM_QUESTIONS` et `regenerate=False` → sert le cache si dispo.
+    - Sinon → génère à la volée (LLM puis fallback extractif).
+    """
     course = await get_course_by_id(course_id)
     if not course:
         raise HTTPException(status_code=404, detail="Cours introuvable.")
 
-    # Récupérer les chunks
+    use_cache = (num_questions == DEFAULT_NUM_QUESTIONS) and not regenerate
+
+    if use_cache:
+        cached = await get_cached_course_quiz(course_id)
+        if cached:
+            logger.info("Quiz servi depuis le cache pour %s", course_id)
+            return QuizResponse(
+                quiz_id=cached["quiz_id"],
+                questions=[QuizQuestion(**q) for q in cached["questions"]],
+            )
+
     chunks = await get_chunks_by_course(course_id)
     if not chunks:
         raise HTTPException(status_code=503, detail="Cours pas encore indexé.")
 
-    # Générer le quiz dans un thread pour ne pas bloquer l'event loop
-    questions = await asyncio.to_thread(generate_quiz, chunks, num_questions)
+    # Génération à la volée (peut prendre plusieurs minutes en LLM)
+    questions = None
+    try:
+        questions = await generate_quiz_llm(chunks, num_questions=num_questions)
+    except Exception:
+        logger.exception("LLM quiz a planté pour %s", course_id)
+        questions = None
+
+    if not questions:
+        logger.info("Fallback quiz extractif pour %s", course_id)
+        questions = await asyncio.to_thread(generate_quiz, chunks, num_questions)
+
     if not questions:
         raise HTTPException(status_code=500, detail="Impossible de générer le quiz pour ce cours.")
 
     quiz_id = str(uuid.uuid4())
+    await save_quiz({"quiz_id": quiz_id, "course_id": course_id, "questions": questions})
 
-    # Sauvegarder le quiz en base
-    await save_quiz({
-        "quiz_id": quiz_id,
-        "course_id": course_id,
-        "questions": questions,
-    })
+    # Si c'est la "taille standard", on met aussi en cache pour les prochains
+    if num_questions == DEFAULT_NUM_QUESTIONS:
+        await save_cached_course_quiz(course_id, quiz_id, questions)
 
     return QuizResponse(
         quiz_id=quiz_id,

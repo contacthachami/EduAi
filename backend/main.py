@@ -46,6 +46,52 @@ async def lifespan(app: FastAPI):
     await asyncio.to_thread(embed_query, "warmup")
     logger.info("Modèle d'embeddings prêt.")
 
+    # Vérifier la disponibilité du LLM (Ollama) — non bloquant
+    if settings.enable_llm:
+        try:
+            from backend.services.llm_client import get_client
+            available = await get_client().is_available(force=True)
+            if available:
+                logger.info("LLM Ollama disponible (modèle: %s)", settings.ollama_model)
+            else:
+                logger.warning(
+                    "LLM Ollama INDISPONIBLE (host=%s, model=%s). "
+                    "Le système fonctionnera en mode extractif (fallback).",
+                    settings.ollama_host, settings.ollama_model,
+                )
+        except Exception:
+            logger.exception("Erreur lors du health-check LLM (mode fallback activé).")
+    else:
+        logger.info("LLM désactivé via ENABLE_LLM=False. Mode extractif uniquement.")
+
+    # ── Pré-régénération des fiches manquantes (cache v2) en arrière-plan ──
+    # Garantit que les cours déjà uploadés ont une fiche prête pour la démo
+    # sans bloquer le démarrage du serveur.
+    async def _warm_existing_summaries():
+        try:
+            from backend.database.mongodb import get_db
+            from backend.routers.summary import pregenerate_summary_in_background
+
+            db = get_db()
+            cursor = db.courses.find({}, {"_id": 1, "filename": 1})
+            courses = await cursor.to_list(length=None)
+            if not courses:
+                return
+
+            logger.info(
+                "Vérification des fiches pour %d cours existant(s)…",
+                len(courses),
+            )
+            for c in courses:
+                cid = str(c["_id"])
+                # pregenerate_summary_in_background no-op si cache v2 déjà présent
+                # (get_cached_summary retourne None pour les anciens caches v1)
+                asyncio.create_task(pregenerate_summary_in_background(cid))
+        except Exception:
+            logger.exception("Erreur lors du warm-up des fiches existantes")
+
+    asyncio.create_task(_warm_existing_summaries())
+
     yield
 
     # Nettoyage

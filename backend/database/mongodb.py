@@ -81,6 +81,8 @@ async def delete_course_by_id(course_id: str) -> bool:
         await db.qa_sessions.delete_many({"course_id": course_id})
         # Supprimer les résumés en cache
         await db.summaries.delete_many({"course_id": course_id})
+        # Supprimer le quiz cache
+        await db.quiz_cache.delete_many({"course_id": course_id})
         return result.deleted_count > 0
     except Exception:
         return False
@@ -118,19 +120,39 @@ async def get_qa_history(session_id: str) -> list[dict]:
     return []
 
 
+# Version du pipeline de résumé. Bump cette valeur pour invalider tout cache existant
+# (utile quand on change le format de la fiche LLM ou le parsing).
+SUMMARY_CACHE_VERSION = "v4-groq"
+
+
 async def get_cached_summary(course_id: str) -> dict | None:
-    """Récupère les résumés mis en cache pour un cours."""
+    """Récupère les résumés mis en cache pour un cours.
+
+    Retourne None si le cache est absent OU si sa version ne correspond pas
+    à SUMMARY_CACHE_VERSION (= ancien format → on regénère).
+    """
     db = get_db()
-    return await db.summaries.find_one({"course_id": course_id})
+    doc = await db.summaries.find_one({"course_id": course_id})
+    if not doc:
+        return None
+    if doc.get("cache_version") != SUMMARY_CACHE_VERSION:
+        # Ancien format : on l'ignore (sera réécrit lors de la prochaine génération)
+        return None
+    return doc
 
 
 async def save_cached_summary(course_id: str, chapters: list[dict]) -> None:
-    """Sauvegarde les résumés générés en cache."""
+    """Sauvegarde les résumés générés en cache (avec version)."""
     from datetime import datetime, timezone
     db = get_db()
     await db.summaries.replace_one(
         {"course_id": course_id},
-        {"course_id": course_id, "chapters": chapters, "created_at": datetime.now(timezone.utc)},
+        {
+            "course_id": course_id,
+            "chapters": chapters,
+            "cache_version": SUMMARY_CACHE_VERSION,
+            "created_at": datetime.now(timezone.utc),
+        },
         upsert=True,
     )
 
@@ -159,3 +181,32 @@ async def save_quiz(quiz_data: dict) -> None:
 async def get_quiz(quiz_id: str) -> dict | None:
     db = get_db()
     return await db.quizzes.find_one({"quiz_id": quiz_id})
+
+
+# ── Cache quiz par cours (quiz "par défaut" pré-généré) ───────────
+
+async def get_cached_course_quiz(course_id: str) -> dict | None:
+    """Récupère le quiz par défaut mis en cache pour un cours."""
+    db = get_db()
+    return await db.quiz_cache.find_one({"course_id": course_id})
+
+
+async def save_cached_course_quiz(course_id: str, quiz_id: str, questions: list[dict]) -> None:
+    """Sauvegarde le quiz par défaut généré en cache."""
+    from datetime import datetime, timezone
+    db = get_db()
+    await db.quiz_cache.replace_one(
+        {"course_id": course_id},
+        {
+            "course_id": course_id,
+            "quiz_id": quiz_id,
+            "questions": questions,
+            "created_at": datetime.now(timezone.utc),
+        },
+        upsert=True,
+    )
+
+
+async def delete_cached_course_quiz(course_id: str) -> None:
+    db = get_db()
+    await db.quiz_cache.delete_many({"course_id": course_id})

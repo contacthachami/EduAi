@@ -86,6 +86,8 @@ export interface QuizQuestion {
   correct_index: number;
   explanation: string;
   source_chunk: string;
+  /** "facile" | "moyen" | "difficile" */
+  difficulty?: string | null;
 }
 
 export interface QuizResponse {
@@ -152,9 +154,10 @@ export async function fetchSummary(courseId: string): Promise<SummaryResponse> {
 export async function fetchQuiz(
   courseId: string,
   numQuestions: number = 10,
+  regenerate: boolean = false,
 ): Promise<QuizResponse> {
   const { data } = await api.get<QuizResponse>(`/quiz/${courseId}`, {
-    params: { num_questions: numQuestions },
+    params: { num_questions: numQuestions, regenerate },
   });
   return data;
 }

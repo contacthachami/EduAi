@@ -93,6 +93,7 @@ class OllamaClient:
         max_tokens: Optional[int] = None,
         json_mode: bool = False,
         retries: int = 1,
+        history: Optional[list[dict]] = None,
     ) -> str:
         """Appelle /api/chat et retourne le contenu textuel.
 
@@ -101,12 +102,14 @@ class OllamaClient:
         if not await self.is_available():
             raise LLMUnavailable("Ollama non disponible (health check échoué).")
 
+        msgs: list[dict] = [{"role": "system", "content": system}]
+        if history:
+            msgs.extend(history)
+        msgs.append({"role": "user", "content": user})
+
         payload = {
             "model": self.model,
-            "messages": [
-                {"role": "system", "content": system},
-                {"role": "user", "content": user},
-            ],
+            "messages": msgs,
             "stream": False,
             "options": {
                 "temperature": temperature,
@@ -176,17 +179,20 @@ class OllamaClient:
         user: str,
         *,
         temperature: float = 0.1,
+        history: Optional[list[dict]] = None,
     ) -> AsyncIterator[str]:
         """Stream token-by-token. Yield les fragments texte au fur et à mesure."""
         if not await self.is_available():
             raise LLMUnavailable("Ollama non disponible.")
 
+        msgs: list[dict] = [{"role": "system", "content": system}]
+        if history:
+            msgs.extend(history)
+        msgs.append({"role": "user", "content": user})
+
         payload = {
             "model": self.model,
-            "messages": [
-                {"role": "system", "content": system},
-                {"role": "user", "content": user},
-            ],
+            "messages": msgs,
             "stream": True,
             "options": {
                 "temperature": temperature,
@@ -220,11 +226,15 @@ def _parse_json_loose(raw: str) -> dict | list:
     s = raw.strip()
     # Retire les fences ```json ou ```
     if s.startswith("```"):
-        s = s.split("```", 2)[-1] if s.count("```") >= 2 else s.lstrip("`")
-        # 'json\n{...}' éventuel
-        if s.lstrip().lower().startswith("json"):
-            s = s.lstrip()[4:]
-        s = s.strip().rstrip("`").strip()
+        # Split sur les fences: ['', 'json\n{...}\n', '', ...]
+        parts = s.split("```")
+        # Le contenu est entre la première et la dernière fence
+        # On prend la plus longue partie non-vide
+        inner = max(parts, key=len).strip()
+        # Retire un éventuel préfixe 'json' après la fence ouvrante
+        if inner.lower().startswith("json"):
+            inner = inner[4:].strip()
+        s = inner
     # Tente parse direct
     try:
         return json.loads(s)
@@ -297,16 +307,19 @@ class GroqClient:
         max_tokens: Optional[int] = None,
         json_mode: bool = False,
         retries: int = 1,
+        history: Optional[list[dict]] = None,
     ) -> str:
         if not await self.is_available():
             raise LLMUnavailable("Groq indisponible (clé API manquante).")
 
+        msgs: list[dict] = [{"role": "system", "content": system}]
+        if history:
+            msgs.extend(history)
+        msgs.append({"role": "user", "content": user})
+
         payload: dict = {
             "model": self.model,
-            "messages": [
-                {"role": "system", "content": system},
-                {"role": "user", "content": user},
-            ],
+            "messages": msgs,
             "temperature": temperature,
             "stream": False,
         }
@@ -316,6 +329,8 @@ class GroqClient:
             payload["response_format"] = {"type": "json_object"}
 
         last_exc: Optional[Exception] = None
+        # Total tentatives = retries + 1. Pour les erreurs réseau transientes
+        # (DNS getaddrinfo, ConnectError) on tente avec backoff exponentiel.
         for attempt in range(retries + 1):
             try:
                 t0 = time.monotonic()
@@ -345,9 +360,19 @@ class GroqClient:
                 return msg.strip()
             except (httpx.HTTPError, LLMUnavailable) as exc:
                 last_exc = exc
-                logger.warning("Groq chat tentative %d/%d échouée: %s", attempt + 1, retries + 1, exc)
+                # Distingue erreurs transientes (DNS, connexion) — qui méritent
+                # un backoff plus généreux — des autres erreurs.
+                is_transient = isinstance(exc, (httpx.ConnectError, httpx.NetworkError, httpx.ReadTimeout))
+                logger.warning(
+                    "Groq chat tentative %d/%d échouée%s: %s",
+                    attempt + 1, retries + 1,
+                    " (réseau transient)" if is_transient else "",
+                    exc,
+                )
                 if attempt < retries:
-                    await asyncio.sleep(1.5 * (attempt + 1))
+                    # Backoff exponentiel pour erreurs réseau, linéaire sinon.
+                    delay = (2.0 ** attempt) if is_transient else (1.5 * (attempt + 1))
+                    await asyncio.sleep(min(delay, 8.0))
         raise LLMUnavailable(f"Groq chat: toutes les tentatives ont échoué ({last_exc}).")
 
     async def chat_json(
@@ -375,15 +400,19 @@ class GroqClient:
         user: str,
         *,
         temperature: float = 0.1,
+        history: Optional[list[dict]] = None,
     ) -> AsyncIterator[str]:
         if not await self.is_available():
             raise LLMUnavailable("Groq indisponible.")
+
+        msgs: list[dict] = [{"role": "system", "content": system}]
+        if history:
+            msgs.extend(history)
+        msgs.append({"role": "user", "content": user})
+
         payload = {
             "model": self.model,
-            "messages": [
-                {"role": "system", "content": system},
-                {"role": "user", "content": user},
-            ],
+            "messages": msgs,
             "temperature": temperature,
             "stream": True,
         }

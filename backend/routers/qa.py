@@ -26,9 +26,55 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+# Seuil minimal de pertinence pour considérer qu'on a un *vrai* contexte du cours.
+# En dessous : on appelle quand même le LLM (pour gérer salutations / hors-sujet),
+# mais on ne lui passe PAS d'extraits, et on ne renvoie pas de sources.
+_RELEVANCE_THRESHOLD = 0.30
+
+
+def _select_relevant(context_chunks: list[dict]) -> tuple[list[dict], list[dict]]:
+    """Sépare les extraits assez pertinents (≥ seuil) du reste.
+
+    Retourne (extraits_pertinents, top_3_pour_sources).
+    Si aucun extrait n'est au-dessus du seuil → listes vides : le LLM répondra
+    de façon conversationnelle (salutation) ou refusera (hors-sujet).
+    """
+    relevant = [c for c in context_chunks if c["score"] >= _RELEVANCE_THRESHOLD]
+    if not relevant:
+        return [], []
+    top = sorted(relevant, key=lambda c: c["score"], reverse=True)[:3]
+    return relevant, top
+
+
+async def _load_history(session_id: str, max_turns: int = 3) -> list[dict]:
+    """Charge les `max_turns` derniers tours (=2*max_turns messages) en format LLM."""
+    try:
+        exchanges = await get_qa_history(session_id)
+    except Exception:
+        logger.exception("Impossible de charger l'historique Q&A")
+        return []
+    if not exchanges:
+        return []
+    recent = exchanges[-max_turns:]
+    msgs: list[dict] = []
+    for ex in recent:
+        q = (ex.get("question") or "").strip()
+        a = (ex.get("answer") or "").strip()
+        if q:
+            msgs.append({"role": "user", "content": q})
+        if a:
+            msgs.append({"role": "assistant", "content": a})
+    return msgs
+
+
 @router.post("/ask", response_model=AnswerResponse)
 async def ask_question(request: QuestionRequest):
-    """Pose une question sur un cours — pipeline RAG complet (LLM-first, fallback CamemBERT)."""
+    """Pose une question sur un cours — pipeline RAG conversationnel (Groq-first).
+
+    Contrairement à l'ancienne version, on n'écarte plus brutalement les questions
+    à faible score : le LLM gère lui-même salutations, hors-sujet et réponses
+    sourcées (cf. prompt système dans `llm_qa.py`).
+    """
     settings = get_settings()
 
     # Validation
@@ -45,6 +91,8 @@ async def ask_question(request: QuestionRequest):
     if not chunks:
         raise HTTPException(status_code=503, detail="Cours pas encore indexé, réessayez dans quelques instants.")
 
+    course_title = course.get("title") or course.get("name") or ""
+
     # Encoder la question (blocking ML call → thread)
     query_vector = await asyncio.to_thread(embed_query, request.question)
 
@@ -55,7 +103,7 @@ async def ask_question(request: QuestionRequest):
         raise HTTPException(status_code=503, detail="Index de recherche indisponible pour ce cours.")
 
     # Récupérer les chunks correspondants
-    context_chunks = []
+    context_chunks: list[dict] = []
     for result in search_results:
         idx = result["index"]
         if idx < len(chunks):
@@ -68,38 +116,37 @@ async def ask_question(request: QuestionRequest):
             })
 
     session_id = request.session_id or str(uuid.uuid4())
+    relevant, top = _select_relevant(context_chunks)
+    history = await _load_history(session_id)
 
-    # Vérifier la confiance des résultats
-    if not context_chunks or all(c["score"] < 0.3 for c in context_chunks):
-        return AnswerResponse(
-            answer="Je n'ai pas trouvé d'information pertinente dans ce cours pour cette question.",
-            confidence=0.0,
-            sources=[],
-            session_id=session_id,
-            llm_used=False,
-        )
-
-    # ── 1. Tentative LLM (RAG génératif, plus naturel) ──
+    # ── 1. LLM conversationnel (gère salutations, hors-sujet, et RAG sourcé) ──
     llm_answer = None
     try:
-        llm_answer = await answer_with_llm(request.question, context_chunks)
+        llm_answer = await answer_with_llm(
+            request.question,
+            relevant,
+            course_title=course_title,
+            history=history,
+        )
     except Exception:
         logger.exception("LLM Q&A a planté")
         llm_answer = None
 
     if llm_answer:
-        # Confiance basée sur le score moyen des top-3 sources
-        top = sorted(context_chunks, key=lambda c: c["score"], reverse=True)[:3]
-        confidence = sum(c["score"] for c in top) / max(len(top), 1)
-        sources_data = [
-            {
-                "chunk_text": c["text"][:500],
-                "page": c["page"],
-                "chapter": c["chapter"],
-                "similarity_score": float(c["score"]),
-            }
-            for c in top
-        ]
+        if top:
+            confidence = sum(c["score"] for c in top) / max(len(top), 1)
+            sources_data = [
+                {
+                    "chunk_text": c["text"][:500],
+                    "page": c["page"],
+                    "chapter": c["chapter"],
+                    "similarity_score": float(c["score"]),
+                }
+                for c in top
+            ]
+        else:
+            confidence = 0.0
+            sources_data = []
         exchange = {
             "question": request.question,
             "answer": llm_answer,
@@ -117,8 +164,23 @@ async def ask_question(request: QuestionRequest):
             llm_used=True,
         )
 
-    # ── 2. Fallback CamemBERT-QA extractif ──
-    qa_result = await asyncio.to_thread(answer_question, request.question, context_chunks)
+    # ── 2. Fallback CamemBERT-QA extractif (si LLM KO ET on a du contexte) ──
+    if not relevant:
+        # Pas de LLM et rien de pertinent dans le cours → message générique
+        msg = (
+            "Je n'ai pas trouvé d'information pertinente dans le cours pour ce message, "
+            "et l'assistant LLM est temporairement indisponible. Reformule ta question "
+            "sur le contenu du cours."
+        )
+        return AnswerResponse(
+            answer=msg,
+            confidence=0.0,
+            sources=[],
+            session_id=session_id,
+            llm_used=False,
+        )
+
+    qa_result = await asyncio.to_thread(answer_question, request.question, relevant)
 
     exchange = {
         "question": request.question,
@@ -159,7 +221,11 @@ async def get_history(session_id: str):
 # ─── Streaming SSE pour le Q&A (effet ChatGPT) ────────────────────
 
 async def _retrieve_contexts(course_id: str, question: str) -> tuple[list[dict], list[dict]]:
-    """Récupère les contextes pertinents. Retourne (context_chunks, top_sources)."""
+    """Récupère les extraits pertinents (≥ seuil) et le top-3 pour les sources.
+
+    Retourne (relevant_chunks, top_3_for_sources).
+    Listes vides si aucun extrait n'est pertinent (le LLM gérera : salutation/refus).
+    """
     settings = get_settings()
     chunks = await get_chunks_by_course(course_id)
     if not chunks:
@@ -180,10 +246,7 @@ async def _retrieve_contexts(course_id: str, question: str) -> tuple[list[dict],
                 "chapter": chunk.get("chapter", ""),
                 "score": result["score"],
             })
-    if not context_chunks or all(c["score"] < 0.3 for c in context_chunks):
-        return [], []
-    top = sorted(context_chunks, key=lambda c: c["score"], reverse=True)[:3]
-    return context_chunks, top
+    return _select_relevant(context_chunks)
 
 
 @router.post("/ask/stream")
@@ -208,20 +271,10 @@ async def ask_question_stream(request: QuestionRequest):
     if not course:
         raise HTTPException(status_code=404, detail="Cours introuvable.")
 
-    context_chunks, top = await _retrieve_contexts(request.course_id, request.question)
+    course_title = course.get("title") or course.get("name") or ""
+    relevant, top = await _retrieve_contexts(request.course_id, request.question)
     session_id = request.session_id or str(uuid.uuid4())
-
-    if not context_chunks:
-        async def empty_gen():
-            payload = {
-                "sources": [],
-                "session_id": session_id,
-            }
-            yield f"event: sources\ndata: {json.dumps(payload, ensure_ascii=False)}\n\n"
-            msg = "Je n'ai pas trouvé d'information pertinente dans ce cours pour cette question."
-            yield f"event: token\ndata: {json.dumps({'text': msg}, ensure_ascii=False)}\n\n"
-            yield f"event: done\ndata: {json.dumps({'finished': True, 'llm_used': False})}\n\n"
-        return StreamingResponse(empty_gen(), media_type="text/event-stream")
+    history = await _load_history(session_id)
 
     sources_data = [
         {
@@ -232,10 +285,10 @@ async def ask_question_stream(request: QuestionRequest):
         }
         for c in top
     ]
-    confidence = sum(c["score"] for c in top) / max(len(top), 1)
+    confidence = (sum(c["score"] for c in top) / len(top)) if top else 0.0
 
     async def event_stream():
-        # 1) On envoie d'abord les sources
+        # 1) On envoie d'abord les sources (vide si salutation/hors-sujet)
         payload = {
             "sources": sources_data,
             "session_id": session_id,
@@ -243,24 +296,40 @@ async def ask_question_stream(request: QuestionRequest):
         }
         yield f"event: sources\ndata: {json.dumps(payload, ensure_ascii=False)}\n\n"
 
-        # 2) On stream le LLM, ou on fallback CamemBERT
+        # 2) On stream le LLM (gère salutation / RAG / refus hors-sujet)
         full_answer_parts: list[str] = []
         llm_used = False
         try:
-            async for chunk in stream_answer_with_llm(request.question, context_chunks):
+            async for chunk in stream_answer_with_llm(
+                request.question,
+                relevant,
+                course_title=course_title,
+                history=history,
+            ):
                 full_answer_parts.append(chunk)
                 yield f"event: token\ndata: {json.dumps({'text': chunk}, ensure_ascii=False)}\n\n"
             llm_used = True
         except LLMUnavailable as exc:
-            logger.info("LLM stream indisponible (%s) → fallback extractif", exc)
-            qa_result = await asyncio.to_thread(answer_question, request.question, context_chunks)
-            full_answer_parts = [qa_result["answer"]]
-            yield f"event: token\ndata: {json.dumps({'text': qa_result['answer']}, ensure_ascii=False)}\n\n"
+            logger.info("LLM stream indisponible (%s) → fallback", exc)
+            if relevant:
+                qa_result = await asyncio.to_thread(answer_question, request.question, relevant)
+                fallback_msg = qa_result["answer"]
+            else:
+                fallback_msg = (
+                    "L'assistant est temporairement indisponible. Réessaie dans un instant, "
+                    "ou pose une question précise sur le contenu du cours."
+                )
+            full_answer_parts = [fallback_msg]
+            yield f"event: token\ndata: {json.dumps({'text': fallback_msg}, ensure_ascii=False)}\n\n"
         except Exception:
             logger.exception("Erreur stream LLM")
-            qa_result = await asyncio.to_thread(answer_question, request.question, context_chunks)
-            full_answer_parts = [qa_result["answer"]]
-            yield f"event: token\ndata: {json.dumps({'text': qa_result['answer']}, ensure_ascii=False)}\n\n"
+            if relevant:
+                qa_result = await asyncio.to_thread(answer_question, request.question, relevant)
+                fallback_msg = qa_result["answer"]
+            else:
+                fallback_msg = "Une erreur est survenue. Réessaie dans un instant."
+            full_answer_parts = [fallback_msg]
+            yield f"event: token\ndata: {json.dumps({'text': fallback_msg}, ensure_ascii=False)}\n\n"
 
         full_answer = "".join(full_answer_parts).strip()
 

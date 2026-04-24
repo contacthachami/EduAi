@@ -107,6 +107,7 @@ class QuizQuestion(BaseModel):
     correct_index: int
     explanation: str
     source_chunk: str
+    difficulty: Optional[str] = None  # "facile" | "moyen" | "difficile"
 
 
 class QuizResponse(BaseModel):

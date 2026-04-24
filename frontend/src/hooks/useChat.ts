@@ -1,6 +1,12 @@
 /**
  * Hook de gestion du chat Q&A.
  * Utilise le streaming SSE pour un effet "ChatGPT".
+ *
+ * Fonctions exposées :
+ *  - sendMessage(question)  : envoie une question
+ *  - stop()                 : interrompt la génération en cours
+ *  - retry()                : ré-envoie la dernière question (utile en cas d'erreur)
+ *  - clearMessages()        : efface l'historique et la session
  */
 "use client";
 
@@ -17,6 +23,8 @@ export interface ChatMessage {
   isLoading?: boolean;
   isStreaming?: boolean;
   llmUsed?: boolean;
+  /** Si défini, le message est en état d'erreur (à afficher en rouge + bouton réessayer). */
+  error?: string;
 }
 
 export function useChat(courseId: string) {
@@ -24,10 +32,11 @@ export function useChat(courseId: string) {
   const [isLoading, setIsLoading] = useState(false);
   const sessionIdRef = useRef<string | undefined>(undefined);
   const abortRef = useRef<(() => void) | null>(null);
+  const lastQuestionRef = useRef<string | null>(null);
 
-  const sendMessage = useCallback(
-    async (question: string) => {
-      if (!question.trim() || isLoading) return;
+  const sendInternal = useCallback(
+    (question: string) => {
+      lastQuestionRef.current = question;
 
       const userMsg: ChatMessage = {
         id: `user-${Date.now()}`,
@@ -58,9 +67,7 @@ export function useChat(courseId: string) {
             sessionIdRef.current = session_id;
             setMessages((prev) =>
               prev.map((m) =>
-                m.id === assistantId
-                  ? { ...m, sources, confidence, isLoading: false }
-                  : m,
+                m.id === assistantId ? { ...m, sources, confidence } : m,
               ),
             );
           },
@@ -95,7 +102,10 @@ export function useChat(courseId: string) {
                 m.id === assistantId
                   ? {
                       ...m,
-                      content: `Erreur : ${err.message}`,
+                      content: "",
+                      error:
+                        err.message ||
+                        "Connexion interrompue. Réessaie dans un instant.",
                       isLoading: false,
                       isStreaming: false,
                     }
@@ -108,8 +118,61 @@ export function useChat(courseId: string) {
         },
       );
     },
-    [courseId, isLoading],
+    [courseId],
   );
+
+  const sendMessage = useCallback(
+    (question: string) => {
+      const q = question.trim();
+      if (!q || isLoading) return;
+      sendInternal(q);
+    },
+    [isLoading, sendInternal],
+  );
+
+  /** Interrompt proprement la génération en cours. */
+  const stop = useCallback(() => {
+    if (abortRef.current) {
+      abortRef.current();
+      abortRef.current = null;
+    }
+    // Marque le dernier message assistant comme arrêté (plus de streaming, plus de loading)
+    setMessages((prev) => {
+      if (prev.length === 0) return prev;
+      const last = prev[prev.length - 1];
+      if (last.role !== "assistant" || (!last.isStreaming && !last.isLoading)) {
+        return prev;
+      }
+      return prev.map((m, i) =>
+        i === prev.length - 1
+          ? {
+              ...m,
+              isStreaming: false,
+              isLoading: false,
+              content: m.content || "_(génération interrompue)_",
+            }
+          : m,
+      );
+    });
+    setIsLoading(false);
+  }, []);
+
+  /** Ré-envoie la dernière question (supprime le dernier échange en erreur). */
+  const retry = useCallback(() => {
+    const q = lastQuestionRef.current;
+    if (!q || isLoading) return;
+    // Retire le dernier user + assistant (échange en erreur)
+    setMessages((prev) => {
+      const next = [...prev];
+      // Si le dernier est l'assistant en erreur → on retire les 2 derniers
+      if (next.length >= 2 && next[next.length - 1].role === "assistant") {
+        next.pop();
+        if (next[next.length - 1]?.role === "user") next.pop();
+      }
+      return next;
+    });
+    sendInternal(q);
+  }, [isLoading, sendInternal]);
 
   const clearMessages = useCallback(() => {
     if (abortRef.current) {
@@ -118,8 +181,9 @@ export function useChat(courseId: string) {
     }
     setMessages([]);
     sessionIdRef.current = undefined;
+    lastQuestionRef.current = null;
     setIsLoading(false);
   }, []);
 
-  return { messages, isLoading, sendMessage, clearMessages };
+  return { messages, isLoading, sendMessage, stop, retry, clearMessages };
 }

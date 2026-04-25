@@ -184,6 +184,10 @@ function AccordionItem({
   onToggle: () => void;
 }) {
   const contentId = `chapter-summary-${index}`;
+  const triggerA11yProps = {
+    "aria-controls": contentId,
+    "aria-expanded": isOpen ? "true" : "false",
+  } as const;
 
   return (
     <motion.section
@@ -194,8 +198,7 @@ function AccordionItem({
       <button
         type="button"
         onClick={onToggle}
-        aria-expanded={isOpen}
-        aria-controls={contentId}
+        {...triggerA11yProps}
         className="flex w-full flex-col gap-3 px-4 py-4 text-left transition hover:bg-bg-subtle sm:flex-row sm:items-center sm:justify-between sm:px-5"
       >
         <span className="flex min-w-0 items-start gap-3">

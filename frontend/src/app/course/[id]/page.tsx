@@ -118,6 +118,18 @@ export default function CoursePage() {
     }
   };
 
+  const getTabA11yProps = (tab: Tab, selected: boolean) =>
+    ({
+      "aria-controls": `${tabBaseId}-${tab}-panel`,
+      "aria-selected": selected ? "true" : "false",
+      tabIndex: selected ? 0 : -1,
+    }) as const;
+
+  const getPanelA11yProps = (tab: Tab) =>
+    ({
+      "aria-labelledby": `${tabBaseId}-${tab}-tab`,
+    }) as const;
+
   if (loading) {
     return (
       <div className="page-container py-10">
@@ -242,9 +254,7 @@ export default function CoursePage() {
                   id={`${tabBaseId}-${tab.key}-tab`}
                   type="button"
                   role="tab"
-                  aria-selected={selected}
-                  aria-controls={`${tabBaseId}-${tab.key}-panel`}
-                  tabIndex={selected ? 0 : -1}
+                  {...getTabA11yProps(tab.key, selected)}
                   onClick={() => setActiveTab(tab.key)}
                   className={`rounded-card border px-4 py-3 text-left transition duration-200 ${
                     selected
@@ -271,7 +281,7 @@ export default function CoursePage() {
                   key="chat"
                   id={`${tabBaseId}-chat-panel`}
                   role="tabpanel"
-                  aria-labelledby={`${tabBaseId}-chat-tab`}
+                  {...getPanelA11yProps("chat")}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
@@ -289,7 +299,7 @@ export default function CoursePage() {
                   key="resume"
                   id={`${tabBaseId}-resume-panel`}
                   role="tabpanel"
-                  aria-labelledby={`${tabBaseId}-resume-tab`}
+                  {...getPanelA11yProps("resume")}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
@@ -304,7 +314,7 @@ export default function CoursePage() {
                   key="quiz"
                   id={`${tabBaseId}-quiz-panel`}
                   role="tabpanel"
-                  aria-labelledby={`${tabBaseId}-quiz-tab`}
+                  {...getPanelA11yProps("quiz")}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}

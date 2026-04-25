@@ -17,6 +17,11 @@ const FAMILY_LABELS: Record<PipelineStep["family"], string> = {
 
 export default function PipelineBanner({ meta }: PipelineBannerProps) {
   const [open, setOpen] = useState(false);
+  const detailsId = "pipeline-method-details";
+  const triggerA11yProps = {
+    "aria-controls": detailsId,
+    "aria-expanded": open ? "true" : "false",
+  } as const;
 
   return (
     <div className="mb-5 rounded-panel border border-border bg-bg-subtle">
@@ -24,7 +29,7 @@ export default function PipelineBanner({ meta }: PipelineBannerProps) {
         type="button"
         onClick={() => setOpen((value) => !value)}
         className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
-        aria-expanded={open}
+        {...triggerA11yProps}
       >
         <span className="flex min-w-0 items-center gap-3">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-card bg-bg-card text-accent">
@@ -51,6 +56,7 @@ export default function PipelineBanner({ meta }: PipelineBannerProps) {
       <AnimatePresence initial={false}>
         {open && (
           <motion.div
+            id={detailsId}
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}

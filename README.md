@@ -79,7 +79,7 @@ Avant de lancer le projet, vous devez installer :
 
 Commande :
 
-git clone https://github.com/USERNAME/eduai.git
+git clone https://github.com/contacthachami/EduAi.git
 
 Puis entrer dans le dossier :
 

@@ -6,31 +6,37 @@ const config: Config = {
     extend: {
       colors: {
         bg: {
-          primary: "#F7F5F2",
-          secondary: "#EFEDE9",
+          primary: "#F6F3EF",
+          secondary: "#ECE7E1",
+          subtle: "#FAF8F5",
           card: "#FFFFFF",
         },
         ink: {
-          primary: "#1A1816",
-          secondary: "#6B6560",
-          muted: "#A09890",
+          primary: "#171412",
+          secondary: "#5F5750",
+          muted: "#8D837A",
         },
         accent: {
-          DEFAULT: "#C4622D",
-          light: "#F2E8E1",
-          hover: "#A84E23",
+          DEFAULT: "#B85B2A",
+          light: "#F0E3DA",
+          soft: "#F8EFE9",
+          hover: "#93451F",
         },
         border: {
-          DEFAULT: "#E2DDD8",
-          strong: "#C8C0B8",
+          DEFAULT: "#DED8D1",
+          strong: "#BDB4AA",
         },
         success: {
-          DEFAULT: "#2D6A4F",
-          light: "#D8F3DC",
+          DEFAULT: "#2F6A4E",
+          light: "#E5F2EA",
         },
         error: {
-          DEFAULT: "#9B2226",
-          light: "#FFCCD5",
+          DEFAULT: "#9B2F2F",
+          light: "#F8E6E4",
+        },
+        warning: {
+          DEFAULT: "#8A5A16",
+          light: "#F5EAD5",
         },
       },
       fontFamily: {
@@ -39,14 +45,17 @@ const config: Config = {
         mono: ["JetBrains Mono", "monospace"],
       },
       maxWidth: {
-        content: "760px",
+        content: "920px",
+        workspace: "1120px",
+        prose: "760px",
       },
       boxShadow: {
-        card: "0 1px 3px rgba(26, 24, 22, 0.08)",
-        "card-hover": "0 2px 8px rgba(26, 24, 22, 0.12)",
+        card: "0 1px 2px rgba(23, 20, 18, 0.05), 0 12px 30px rgba(23, 20, 18, 0.035)",
+        "card-hover": "0 2px 4px rgba(23, 20, 18, 0.06), 0 18px 40px rgba(23, 20, 18, 0.055)",
       },
       borderRadius: {
         card: "6px",
+        panel: "8px",
       },
     },
   },

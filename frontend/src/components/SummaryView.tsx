@@ -1,17 +1,15 @@
-/**
- * SummaryView — Résumés par chapitre en accordéon.
- *
- * Style éditorial : lignes de séparation fines, pas d'ombres sur chaque item.
- * Concepts clés : tags avec fond accent-light.
- * Résumés structurés en points clés (bullet points).
- */
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Loader2, Sparkles } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { BookOpenText, ChevronDown, Loader2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
-import { fetchSummary, type ChapterSummary } from "@/lib/api";
+import PipelineBanner from "@/components/PipelineBanner";
+import {
+  fetchSummary,
+  type ChapterSummary,
+  type PipelineMeta,
+} from "@/lib/api";
 
 interface SummaryViewProps {
   courseId: string;
@@ -19,12 +17,20 @@ interface SummaryViewProps {
 
 const POLL_INTERVAL = 8_000;
 
+function pageRange(pages: number[]) {
+  if (!pages.length) return "Pages non précisées";
+  const start = pages[0];
+  const end = pages[pages.length - 1];
+  return start === end ? `p. ${start}` : `p. ${start}-${end}`;
+}
+
 export default function SummaryView({ courseId }: SummaryViewProps) {
   const [chapters, setChapters] = useState<ChapterSummary[]>([]);
+  const [pipelineMeta, setPipelineMeta] = useState<PipelineMeta | null>(null);
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const stopPolling = useCallback(() => {
@@ -34,30 +40,21 @@ export default function SummaryView({ courseId }: SummaryViewProps) {
     }
   }, []);
 
-  const doFetch = useCallback(
-    async (signal?: AbortSignal) => {
-      const res = await fetchSummary(courseId);
-      if (signal?.aborted) return null;
-      return res;
-    },
-    [courseId],
-  );
-
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    setError(null);
     setGenerating(false);
+    setError(null);
     stopPolling();
 
-    doFetch()
-      .then((res) => {
-        if (cancelled || !res) return;
-        if (res.status === "ready") {
-          setChapters(res.chapters);
+    fetchSummary(courseId)
+      .then((response) => {
+        if (cancelled) return;
+        if (response.status === "ready") {
+          setChapters(response.chapters);
+          setPipelineMeta(response.pipeline_meta ?? null);
           setLoading(false);
         } else {
-          // Generation started — switch to polling mode
           setLoading(false);
           setGenerating(true);
           pollRef.current = setInterval(async () => {
@@ -66,11 +63,12 @@ export default function SummaryView({ courseId }: SummaryViewProps) {
               if (cancelled) return;
               if (poll.status === "ready") {
                 setChapters(poll.chapters);
+                setPipelineMeta(poll.pipeline_meta ?? null);
                 setGenerating(false);
                 stopPolling();
               }
             } catch {
-              // Ignore transient polling errors
+              // Temporary backend delays are expected during generation.
             }
           }, POLL_INTERVAL);
         }
@@ -80,7 +78,7 @@ export default function SummaryView({ courseId }: SummaryViewProps) {
           setError(
             err instanceof Error
               ? err.message
-              : "Impossible de charger les résumés.",
+              : "Impossible de charger la synthèse.",
           );
           setLoading(false);
         }
@@ -90,35 +88,31 @@ export default function SummaryView({ courseId }: SummaryViewProps) {
       cancelled = true;
       stopPolling();
     };
-  }, [courseId, doFetch, stopPolling]);
+  }, [courseId, stopPolling]);
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 gap-3">
-        <Loader2
-          size={24}
-          strokeWidth={1.5}
-          className="animate-spin text-accent"
-        />
-        <p className="text-sm text-ink-secondary">Chargement…</p>
+      <div className="panel flex flex-col items-center justify-center gap-3 px-5 py-16">
+        <Loader2 size={24} strokeWidth={1.8} className="animate-spin text-accent" />
+        <p className="text-sm text-ink-secondary">Chargement de la synthèse...</p>
       </div>
     );
   }
 
   if (generating) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 gap-3">
-        <Loader2
-          size={24}
-          strokeWidth={1.5}
-          className="animate-spin text-accent"
-        />
-        <p className="text-sm text-ink-secondary">
-          Génération des résumés en cours…
-        </p>
-        <p className="text-xs text-ink-muted">
-          La première génération peut prendre plusieurs minutes. Cette page se
-          met à jour automatiquement.
+      <div
+        role="status"
+        aria-live="polite"
+        className="panel flex flex-col items-center justify-center gap-3 px-5 py-16 text-center"
+      >
+        <Loader2 size={24} strokeWidth={1.8} className="animate-spin text-accent" />
+        <h2 className="text-base font-semibold text-ink-primary">
+          Synthèse en préparation
+        </h2>
+        <p className="max-w-lg text-sm text-ink-secondary">
+          La première génération peut prendre quelques minutes. La page se mettra
+          à jour automatiquement dès que la synthèse sera prête.
         </p>
       </div>
     );
@@ -126,40 +120,53 @@ export default function SummaryView({ courseId }: SummaryViewProps) {
 
   if (error) {
     return (
-      <div className="text-center py-16">
-        <p className="text-sm text-error">{error}</p>
+      <div role="alert" className="status-message status-message-error">
+        {error}
       </div>
     );
   }
 
   if (chapters.length === 0) {
     return (
-      <div className="text-center py-16">
-        <p className="text-sm text-ink-muted">Aucun résumé disponible.</p>
+      <div className="rounded-panel border border-dashed border-border-strong bg-bg-subtle px-5 py-12 text-center">
+        <BookOpenText size={24} strokeWidth={1.8} className="mx-auto text-ink-muted" />
+        <h2 className="mt-3 text-base font-semibold text-ink-primary">
+          Aucune synthèse disponible
+        </h2>
+        <p className="mt-2 text-sm text-ink-secondary">
+          Le cours est prêt, mais aucune synthèse n&apos;a encore été produite.
+        </p>
       </div>
     );
   }
 
   return (
     <div>
-      <div className="flex items-center gap-2 mb-3 px-1">
-        <span className="inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider text-accent bg-accent-light/40 px-1.5 py-0.5 rounded">
-          <Sparkles size={10} strokeWidth={2} />
-          {chapters.some((c) => c.llm_used)
-            ? "Résumé NLP + Deep Learning, reformulé par LLM"
-            : "Résumé extractif (LLM indisponible)"}
-        </span>
+      <div className="mb-5 rounded-panel border border-border bg-bg-subtle px-5 py-4">
+        <p className="eyebrow">Synthèse pédagogique</p>
+        <h2 className="mt-1 text-2xl font-semibold text-ink-primary">
+          Chapitres et points clés
+        </h2>
+        <p className="mt-2 max-w-2xl text-sm text-ink-secondary">
+          Parcourez les sections du document, puis ouvrez un chapitre pour lire
+          la synthèse et les notions importantes.
+        </p>
       </div>
-      <div className="divide-y divide-border">
-        {chapters.map((chapter, i) => (
-          <AccordionItem
-            key={i}
-            chapter={chapter}
-            isOpen={openIndex === i}
-            onToggle={() => setOpenIndex(openIndex === i ? null : i)}
-            index={i}
-          />
-        ))}
+
+      {pipelineMeta && <PipelineBanner meta={pipelineMeta} />}
+
+      <div className="panel overflow-hidden">
+        <div className="divide-y divide-border">
+          {chapters.map((chapter, index) => (
+            <AccordionItem
+              key={`${chapter.title}-${index}`}
+              chapter={chapter}
+              index={index}
+              isOpen={openIndex === index}
+              onToggle={() => setOpenIndex(openIndex === index ? null : index)}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -167,90 +174,74 @@ export default function SummaryView({ courseId }: SummaryViewProps) {
 
 function AccordionItem({
   chapter,
+  index,
   isOpen,
   onToggle,
-  index,
 }: {
   chapter: ChapterSummary;
+  index: number;
   isOpen: boolean;
   onToggle: () => void;
-  index: number;
 }) {
+  const contentId = `chapter-summary-${index}`;
+
   return (
-    <motion.div
+    <motion.section
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, ease: "easeOut", delay: index * 0.05 }}
+      transition={{ duration: 0.2, ease: "easeOut", delay: index * 0.025 }}
     >
       <button
+        type="button"
         onClick={onToggle}
-        className="w-full flex items-center justify-between py-4 px-1 text-left
-                   hover:bg-accent-light/20 transition-colors duration-200"
+        aria-expanded={isOpen}
+        aria-controls={contentId}
+        className="flex w-full flex-col gap-3 px-4 py-4 text-left transition hover:bg-bg-subtle sm:flex-row sm:items-center sm:justify-between sm:px-5"
       >
-        <div className="flex items-baseline gap-3">
-          <span className="text-xs font-mono text-ink-muted">
+        <span className="flex min-w-0 items-start gap-3">
+          <span className="mt-1 font-mono text-xs text-ink-muted">
             {String(index + 1).padStart(2, "0")}
           </span>
-          <h3 className="font-display text-base font-semibold text-ink-primary">
-            {chapter.title}
-          </h3>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-ink-muted">
-            p. {chapter.pages[0]}–{chapter.pages[chapter.pages.length - 1]}
+          <span className="min-w-0">
+            <span className="block break-words text-base font-semibold text-ink-primary">
+              {chapter.title}
+            </span>
+            {chapter.key_concepts.length > 0 && (
+              <span className="mt-1 block text-xs text-ink-muted">
+                {chapter.key_concepts.slice(0, 3).join(", ")}
+              </span>
+            )}
           </span>
-          <motion.div
+        </span>
+        <span className="flex shrink-0 items-center gap-2 text-xs text-ink-muted">
+          {pageRange(chapter.pages)}
+          <motion.span
             animate={{ rotate: isOpen ? 180 : 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.18 }}
           >
-            <ChevronDown
-              size={16}
-              strokeWidth={1.5}
-              className="text-ink-muted"
-            />
-          </motion.div>
-        </div>
+            <ChevronDown size={17} strokeWidth={1.8} />
+          </motion.span>
+        </span>
       </button>
 
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         {isOpen && (
           <motion.div
+            id={contentId}
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
             className="overflow-hidden"
           >
-            <div className="pb-5 px-1 pl-9">
-              {/* Si le LLM a produit une fiche pédagogique, on l'affiche en priorité.
-                  Sinon, fallback sur le résumé extractif (bullets). */}
-              {chapter.pedagogic ? (
-                <SummaryContent text={chapter.pedagogic} />
-              ) : (
-                <SummaryContent text={chapter.summary} />
-              )}
+            <div className="px-4 pb-5 sm:px-5 sm:pl-12">
+              <SummaryContent text={chapter.pedagogic || chapter.summary} />
 
               {chapter.key_concepts.length > 0 && (
-                <div className="mt-4 pt-3 border-t border-border/50 flex flex-wrap gap-1.5">
-                  {chapter.key_concepts.map((concept, i) => (
-                    <span key={i} className="tag">
+                <div className="mt-5 flex flex-wrap gap-2 border-t border-border pt-4">
+                  {chapter.key_concepts.map((concept) => (
+                    <span key={concept} className="tag">
                       {concept}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {chapter.techniques && chapter.techniques.length > 0 && (
-                <div className="mt-3 flex flex-wrap items-center gap-1.5">
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-ink-muted">
-                    Techniques
-                  </span>
-                  {chapter.techniques.map((t, i) => (
-                    <span
-                      key={i}
-                      className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-bg-secondary text-ink-secondary ring-1 ring-border"
-                    >
-                      {t}
                     </span>
                   ))}
                 </div>
@@ -259,73 +250,53 @@ function AccordionItem({
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </motion.section>
   );
 }
 
-/** Renders structured summary text via Markdown (supports bullets, bold, italic, headers). */
-function SummaryContent({ text }: { text: string }) {
+function SummaryContent({ text }: { text?: string | null }) {
   if (!text) {
     return (
-      <p className="text-sm text-ink-muted italic">
-        Aucun contenu de résumé pour ce chapitre.
+      <p className="text-sm italic text-ink-muted">
+        Aucun contenu disponible pour ce chapitre.
       </p>
     );
   }
 
-  // Convertit les bullets `• ` en `- ` pour ReactMarkdown
   const normalized = text
     .split("\n")
     .map((line) => line.replace(/^\s*•\s*/, "- "))
     .join("\n");
 
   return (
-    <div className="text-sm text-ink-secondary leading-relaxed">
+    <div className="text-sm leading-relaxed text-ink-secondary">
       <ReactMarkdown
         components={{
           p: ({ children }) => <p className="my-2">{children}</p>,
           ul: ({ children }) => (
-            <ul className="my-2 space-y-1.5 list-none">{children}</ul>
+            <ul className="my-3 list-disc space-y-1.5 pl-5">{children}</ul>
           ),
           ol: ({ children }) => (
-            <ol className="my-2 space-y-1.5 list-decimal list-inside">
-              {children}
-            </ol>
+            <ol className="my-3 list-decimal space-y-1.5 pl-5">{children}</ol>
           ),
-          li: ({ children }) => (
-            <li className="flex gap-2">
-              <span className="text-accent shrink-0">•</span>
-              <span>{children}</span>
-            </li>
-          ),
-          strong: ({ children }) => (
-            <strong className="font-semibold text-ink-primary">
-              {children}
-            </strong>
-          ),
-          em: ({ children }) => <em className="italic">{children}</em>,
-          code: ({ children }) => (
-            <code className="bg-bg-secondary px-1 rounded text-xs font-mono">
-              {children}
-            </code>
-          ),
-          // h1 = titre du chapitre (déjà affiché dans l'accordion header) → on le masque
           h1: () => null,
-          // h2 = sections de la fiche (🎯 Objectifs, 📚 Concepts, etc.)
           h2: ({ children }) => (
-            <h4 className="font-display text-sm font-semibold text-ink-primary mt-4 mb-2 pb-1 border-b border-border/40">
+            <h3 className="mt-5 border-b border-border pb-1 text-base font-semibold text-ink-primary first:mt-0">
+              {children}
+            </h3>
+          ),
+          h3: ({ children }) => (
+            <h4 className="mt-4 text-sm font-semibold text-ink-primary">
               {children}
             </h4>
           ),
-          h3: ({ children }) => (
-            <h5 className="font-display text-sm font-semibold text-ink-primary mt-3 mb-1">
-              {children}
-            </h5>
+          strong: ({ children }) => (
+            <strong className="font-semibold text-ink-primary">{children}</strong>
           ),
-          h4: ({ children }) => (
-            <h6 className="font-display text-sm font-medium text-ink-primary mt-2 mb-1">
+          code: ({ children }) => (
+            <code className="rounded bg-bg-secondary px-1 py-0.5 font-mono text-xs">
               {children}
-            </h6>
+            </code>
           ),
         }}
       >

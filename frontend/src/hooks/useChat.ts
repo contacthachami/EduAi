@@ -105,7 +105,7 @@ export function useChat(courseId: string) {
                       content: "",
                       error:
                         err.message ||
-                        "Connexion interrompue. Réessaie dans un instant.",
+                        "Connexion interrompue. Réessayez dans un instant.",
                       isLoading: false,
                       isStreaming: false,
                     }
@@ -149,7 +149,7 @@ export function useChat(courseId: string) {
               ...m,
               isStreaming: false,
               isLoading: false,
-              content: m.content || "_(génération interrompue)_",
+              content: m.content || "_(réponse interrompue)_",
             }
           : m,
       );

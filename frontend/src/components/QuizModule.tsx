@@ -2,7 +2,7 @@
  * QuizModule — Quiz interactif style apprentissage (feedback immédiat).
  *
  * Mode par défaut : "apprentissage" — l'étudiant voit immédiatement si
- * sa réponse est correcte, avec l'explication. Style Duolingo.
+ * sa réponse est correcte, avec l'explication.
  *
  * Features :
  *  - Badge difficulté (facile/moyen/difficile) par question
@@ -24,7 +24,6 @@ import {
   RefreshCw,
   Clock,
   SkipForward,
-  Sparkles,
 } from "lucide-react";
 import {
   fetchQuiz,
@@ -40,9 +39,9 @@ interface QuizModuleProps {
 type QuizState = "idle" | "loading" | "active" | "submitted";
 
 const DIFFICULTY_STYLES: Record<string, { label: string; cls: string }> = {
-  facile: { label: "Facile", cls: "bg-green-100 text-green-700" },
+  facile: { label: "Facile", cls: "bg-success-light text-success" },
   moyen: { label: "Moyen", cls: "bg-amber-100 text-amber-700" },
-  difficile: { label: "Difficile", cls: "bg-red-100 text-red-700" },
+  difficile: { label: "Difficile", cls: "bg-error-light text-error" },
 };
 
 function formatTime(seconds: number): string {
@@ -105,12 +104,12 @@ export default function QuizModule({ courseId }: QuizModuleProps) {
         const detail = e.response?.data?.detail;
         if (status === 503) {
           msg = detail
-            ? `Service temporairement indisponible : ${detail} Réessaie dans un instant.`
-            : "Le générateur IA est momentanément indisponible (problème réseau temporaire). Réessaie dans quelques secondes.";
+            ? `Service temporairement indisponible : ${detail} Réessayez dans un instant.`
+            : "Le service de génération est momentanément indisponible. Réessayez dans quelques secondes.";
         } else if (status === 404) {
           msg = "Cours introuvable.";
         } else if (e.code === "ECONNABORTED") {
-          msg = "La génération a pris trop de temps. Réessaie.";
+          msg = "La génération a pris trop de temps. Réessayez.";
         } else if (err instanceof Error) {
           msg = err.message;
         }
@@ -167,28 +166,29 @@ export default function QuizModule({ courseId }: QuizModuleProps) {
     }
   };
 
-  // ── Idle ──
   if (state === "idle") {
     return (
-      <div className="text-center py-16">
-        <h3 className="font-display text-lg font-semibold text-ink-primary">
+      <div className="mx-auto max-w-2xl py-12 text-center sm:py-16">
+        <p className="eyebrow">Entraînement</p>
+        <h3 className="mt-2 text-2xl font-semibold text-ink-primary">
           Quiz de révision
         </h3>
-        <p className="text-sm text-ink-secondary mt-2 mb-6">
-          Testez vos connaissances sur le contenu du cours.
+        <p className="mx-auto mt-2 max-w-lg text-sm text-ink-secondary">
+          Choisissez le nombre de questions, puis lancez un quiz basé sur le
+          contenu du document.
         </p>
 
-        <div className="inline-flex items-center gap-3 mb-6">
-          <label className="text-sm text-ink-secondary">
+        <div className="mt-7 inline-flex items-center gap-3 rounded-card border border-border bg-bg-subtle px-3 py-2">
+          <label htmlFor="quiz-question-count" className="text-sm text-ink-secondary">
             Nombre de questions :
           </label>
           <select
+            id="quiz-question-count"
             value={numQuestions}
             onChange={(e) => setNumQuestions(Number(e.target.value))}
             aria-label="Nombre de questions"
             title="Nombre de questions"
-            className="px-3 py-1.5 text-sm border border-border rounded-card bg-bg-card
-                       text-ink-primary focus:outline-none focus:border-accent"
+            className="rounded-card border border-border bg-bg-card px-3 py-1.5 text-sm text-ink-primary focus:border-accent"
           >
             {[5, 10, 15, 20].map((n) => (
               <option key={n} value={n}>
@@ -198,34 +198,37 @@ export default function QuizModule({ courseId }: QuizModuleProps) {
           </select>
         </div>
 
-        <div className="flex flex-col items-center gap-3">
+        <div className="mt-7 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
           <button onClick={() => startQuiz(false)} className="btn-primary">
             Commencer le quiz
           </button>
           <button
             onClick={() => startQuiz(true)}
-            className="btn-ghost text-xs flex items-center gap-1.5"
-            title="Force la génération de nouvelles questions"
+            className="btn-secondary"
+            title="Générer une nouvelle série de questions"
           >
-            <RefreshCw size={12} strokeWidth={1.5} />
-            Générer un nouveau quiz
+            <RefreshCw size={15} strokeWidth={1.8} />
+            Nouvelle série
           </button>
         </div>
 
         {error && (
-          <div className="mt-6 mx-auto max-w-md p-3 rounded-card border border-red-200 bg-red-50 flex items-start gap-2 text-left">
+          <div
+            role="alert"
+            className="status-message status-message-error mx-auto mt-6 flex max-w-md items-start gap-2 text-left"
+          >
             <XIcon
               size={14}
               strokeWidth={2}
-              className="text-red-600 mt-0.5 shrink-0"
+              className="mt-0.5 shrink-0"
             />
             <div className="flex-1">
-              <p className="text-xs text-red-900 leading-relaxed">{error}</p>
+              <p className="text-xs leading-relaxed">{error}</p>
               <button
                 onClick={() => startQuiz(false)}
-                className="mt-2 text-xs font-medium text-red-700 hover:text-red-900 underline underline-offset-2 inline-flex items-center gap-1"
+                className="mt-2 inline-flex items-center gap-1 text-xs font-medium underline underline-offset-2"
               >
-                <RefreshCw size={11} strokeWidth={1.5} />
+                <RefreshCw size={11} strokeWidth={1.8} />
                 Réessayer
               </button>
             </div>
@@ -235,16 +238,19 @@ export default function QuizModule({ courseId }: QuizModuleProps) {
     );
   }
 
-  // ── Loading ──
   if (state === "loading") {
     return (
-      <div className="flex flex-col items-center justify-center py-16 gap-3 text-sm text-ink-secondary">
+      <div
+        role="status"
+        aria-live="polite"
+        className="flex flex-col items-center justify-center gap-3 py-16 text-sm text-ink-secondary"
+      >
         <Loader2
           size={20}
-          strokeWidth={1.5}
+          strokeWidth={1.8}
           className="animate-spin text-accent"
         />
-        <span>Génération du quiz par l'IA…</span>
+        <span>Préparation du quiz...</span>
         <span className="text-xs text-ink-muted">
           Cela peut prendre quelques instants.
         </span>
@@ -338,9 +344,9 @@ export default function QuizModule({ courseId }: QuizModuleProps) {
               "border-border bg-transparent text-ink-secondary hover:border-accent hover:text-ink-primary";
             if (revealed) {
               if (isCorrectOption) {
-                stateCls = "border-green-500 bg-green-50 text-green-900";
+                stateCls = "border-success bg-success-light text-ink-primary";
               } else if (isPicked) {
-                stateCls = "border-red-500 bg-red-50 text-red-900";
+                stateCls = "border-error bg-error-light text-ink-primary";
               } else {
                 stateCls =
                   "border-border bg-transparent text-ink-muted opacity-60";
@@ -369,14 +375,14 @@ export default function QuizModule({ courseId }: QuizModuleProps) {
                   <Check
                     size={16}
                     strokeWidth={2}
-                    className="text-green-600 shrink-0"
+                    className="text-success shrink-0"
                   />
                 )}
                 {revealed && isPicked && !isCorrectOption && (
                   <XIcon
                     size={16}
                     strokeWidth={2}
-                    className="text-red-600 shrink-0"
+                    className="text-error shrink-0"
                   />
                 )}
               </button>
@@ -393,8 +399,8 @@ export default function QuizModule({ courseId }: QuizModuleProps) {
               exit={{ opacity: 0 }}
               className={`mb-6 p-4 rounded-card border ${
                 isCorrect
-                  ? "border-green-200 bg-green-50"
-                  : "border-red-200 bg-red-50"
+                  ? "border-success/20 bg-success-light"
+                  : "border-error/20 bg-error-light"
               }`}
             >
               <div className="flex items-center gap-2 mb-1.5">
@@ -403,16 +409,16 @@ export default function QuizModule({ courseId }: QuizModuleProps) {
                     <Check
                       size={14}
                       strokeWidth={2}
-                      className="text-green-700"
+                      className="text-success"
                     />
-                    <span className="text-sm font-semibold text-green-800">
+                    <span className="text-sm font-semibold text-success">
                       Bonne réponse !
                     </span>
                   </>
                 ) : (
                   <>
-                    <XIcon size={14} strokeWidth={2} className="text-red-700" />
-                    <span className="text-sm font-semibold text-red-800">
+                    <XIcon size={14} strokeWidth={2} className="text-error" />
+                    <span className="text-sm font-semibold text-error">
                       Pas tout à fait. La bonne réponse est{" "}
                       <span className="font-mono">
                         {String.fromCharCode(65 + question.correct_index)}
@@ -423,7 +429,7 @@ export default function QuizModule({ courseId }: QuizModuleProps) {
                 )}
               </div>
               <p
-                className={`text-xs leading-relaxed ${isCorrect ? "text-green-900" : "text-red-900"}`}
+                className="text-xs leading-relaxed text-ink-secondary"
               >
                 {question.explanation}
               </p>
@@ -520,10 +526,10 @@ function QuizResults({
               transition={{ duration: 0.3, delay: i * 0.04 }}
               className={`p-3 rounded-card border ${
                 correct
-                  ? "border-green-200 bg-green-50/40"
+                  ? "border-success/20 bg-success-light/70"
                   : skipped
                     ? "border-amber-200 bg-amber-50/40"
-                    : "border-red-200 bg-red-50/40"
+                    : "border-error/20 bg-error-light/70"
               }`}
             >
               <div className="flex items-start gap-2">
@@ -531,7 +537,7 @@ function QuizResults({
                   <Check
                     size={16}
                     strokeWidth={1.5}
-                    className="text-green-600 mt-0.5 shrink-0"
+                    className="text-success mt-0.5 shrink-0"
                   />
                 ) : skipped ? (
                   <SkipForward
@@ -543,7 +549,7 @@ function QuizResults({
                   <XIcon
                     size={16}
                     strokeWidth={1.5}
-                    className="text-red-600 mt-0.5 shrink-0"
+                    className="text-error mt-0.5 shrink-0"
                   />
                 )}
                 <div className="flex-1 min-w-0">
@@ -553,7 +559,7 @@ function QuizResults({
                   {q && (
                     <div className="mt-2 space-y-0.5 text-xs">
                       {!correct && !skipped && (
-                        <p className="text-red-700">
+                        <p className="text-error">
                           <span className="font-mono">
                             {String.fromCharCode(65 + userAnswer)}
                           </span>{" "}
@@ -563,7 +569,7 @@ function QuizResults({
                       {skipped && (
                         <p className="text-amber-700">Question passée.</p>
                       )}
-                      <p className="text-green-700">
+                      <p className="text-success">
                         <span className="font-mono">
                           {String.fromCharCode(65 + correctIndex)}
                         </span>{" "}
@@ -591,7 +597,7 @@ function QuizResults({
           onClick={onRegenerate}
           className="btn-primary text-sm flex items-center gap-1.5"
         >
-          <Sparkles size={14} strokeWidth={1.5} />
+          <RefreshCw size={14} strokeWidth={1.8} />
           Nouveau quiz
         </button>
       </div>

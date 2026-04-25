@@ -1,36 +1,18 @@
-/**
- * ChatInterface — Interface de chat Q&A.
- *
- * Messages utilisateur à droite (fond accent-light).
- * Réponses IA à gauche (fond bg-secondary).
- * Sources en footnotes académiques sous chaque réponse.
- * Curseur clignotant pendant la génération.
- *
- * UX :
- *  - Empty state avec questions suggérées cliquables
- *  - Textarea auto-resize
- *  - Bouton Stop pendant la génération
- *  - Bouton Copier sur chaque réponse
- *  - Bouton Réessayer en cas d'erreur
- *  - Indicateur "EduAI réfléchit…" tant qu'aucun token n'est arrivé
- *  - Scroll instantané pendant le streaming, smooth après
- *  - Focus auto sur l'input à l'ouverture
- *  - Hint clavier (Shift+Enter)
- */
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { motion } from "framer-motion";
 import {
-  Send,
-  RotateCcw,
-  Sparkles,
-  Square,
-  Copy,
-  Check,
   AlertCircle,
-  RefreshCw,
+  Check,
+  Copy,
   Lightbulb,
+  Loader2,
+  MessageSquareText,
+  RefreshCw,
+  RotateCcw,
+  Send,
+  Square,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -43,10 +25,10 @@ interface ChatInterfaceProps {
 }
 
 const SUGGESTED_QUESTIONS = [
-  "Résume ce cours en 5 points clés",
-  "Quels sont les concepts principaux abordés ?",
-  "Donne-moi un exemple concret tiré du cours",
-  "Explique le point le plus important comme à un débutant",
+  "Résumez ce cours en cinq points clés",
+  "Quels sont les concepts essentiels à maîtriser ?",
+  "Donnez un exemple concret tiré du document",
+  "Expliquez ce chapitre comme à un débutant",
 ];
 
 export default function ChatInterface({
@@ -58,114 +40,107 @@ export default function ChatInterface({
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const isStreaming = messages.some((m) => m.isStreaming);
+  const isStreaming = messages.some((message) => message.isStreaming);
 
-  // Auto-resize de la textarea (max 160px)
   useEffect(() => {
-    const ta = inputRef.current;
-    if (!ta) return;
-    ta.style.height = "auto";
-    ta.style.height = `${Math.min(ta.scrollHeight, 160)}px`;
+    const textarea = inputRef.current;
+    if (!textarea) return;
+    textarea.style.height = "auto";
+    textarea.style.height = `${Math.min(textarea.scrollHeight, 160)}px`;
   }, [input]);
 
-  // Focus auto à l'ouverture
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
-  // Scroll : instantané pendant le streaming (évite le saccade), smooth sinon
   useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    el.scrollTo({
-      top: el.scrollHeight,
+    const element = scrollRef.current;
+    if (!element) return;
+    element.scrollTo({
+      top: element.scrollHeight,
       behavior: isStreaming ? "auto" : "smooth",
     });
   }, [messages, isStreaming]);
 
   const handleSend = useCallback(
     (text?: string) => {
-      const q = (text ?? input).trim();
-      if (!q || isLoading) return;
-      sendMessage(q);
+      const question = (text ?? input).trim();
+      if (!question || isLoading) return;
+      sendMessage(question);
       setInput("");
-      // Reset hauteur textarea
       if (inputRef.current) inputRef.current.style.height = "auto";
       inputRef.current?.focus();
     },
     [input, isLoading, sendMessage],
   );
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
+  const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
       handleSend();
     }
   };
 
   return (
-    <div className="flex flex-col h-full">
-      {/* En-tête */}
-      <div className="flex items-center justify-between px-5 py-3 border-b border-border">
-        <div>
-          <span className="text-[10px] font-mono uppercase tracking-widest text-accent font-medium">
-            EduAI
-          </span>
-          <p className="text-xs text-ink-muted mt-0.5">
+    <div className="flex h-full flex-col bg-bg-card">
+      <div className="flex flex-col gap-3 border-b border-border bg-bg-subtle px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+        <div className="min-w-0">
+          <p className="eyebrow">Questions</p>
+          <p className="mt-1 truncate text-sm text-ink-secondary">
             Posez une question sur « {courseName} »
           </p>
         </div>
         {messages.length > 0 && (
-          <button
-            onClick={clearMessages}
-            className="btn-ghost flex items-center gap-1.5 text-xs"
-            title="Nouvelle conversation"
-          >
-            <RotateCcw size={14} strokeWidth={1.5} />
-            Effacer
+          <button type="button" onClick={clearMessages} className="btn-secondary">
+            <RotateCcw size={15} strokeWidth={1.8} />
+            Nouvelle conversation
           </button>
         )}
       </div>
 
-      {/* Messages */}
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto px-5 py-4 space-y-4"
+        role="log"
+        aria-live="polite"
+        aria-relevant="additions"
+        className="flex-1 overflow-y-auto px-4 py-5 sm:px-5"
       >
-        {messages.length === 0 && (
-          <EmptyState courseName={courseName} onPick={(q) => handleSend(q)} />
+        {messages.length === 0 ? (
+          <EmptyState courseName={courseName} onPick={(question) => handleSend(question)} />
+        ) : (
+          <div className="space-y-5">
+            {messages.map((message, index) => (
+              <MessageBubble
+                key={message.id}
+                message={message}
+                index={index}
+                onRetry={retry}
+                canRetry={!isLoading}
+              />
+            ))}
+          </div>
         )}
-
-        {messages.map((msg, i) => (
-          <MessageBubble
-            key={msg.id}
-            message={msg}
-            index={i}
-            onRetry={retry}
-            canRetry={!isLoading}
-          />
-        ))}
       </div>
 
-      {/* Zone de saisie */}
-      <div className="border-t border-border px-5 py-3">
+      <div className="border-t border-border bg-bg-subtle px-4 py-4 sm:px-5">
         <div className="flex items-end gap-2">
           <textarea
             ref={inputRef}
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(event) => setInput(event.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Votre question…"
+            placeholder="Votre question..."
             rows={1}
-            className="flex-1 resize-none px-4 py-2.5 text-sm border border-border rounded-card
-                       bg-bg-card text-ink-primary placeholder-ink-muted
-                       focus:outline-none focus:border-accent transition-colors"
+            aria-label="Votre question sur le cours"
+            className="field min-h-11 flex-1 resize-none"
             style={{ maxHeight: "160px" }}
+            disabled={isLoading}
           />
           {isLoading ? (
             <button
+              type="button"
               onClick={stop}
-              className="btn-primary px-3 py-2.5 flex-shrink-0 bg-red-500 hover:bg-red-600"
+              className="btn-primary min-h-11 px-3.5 bg-error hover:bg-error"
               aria-label="Arrêter la génération"
               title="Arrêter"
             >
@@ -173,69 +148,66 @@ export default function ChatInterface({
             </button>
           ) : (
             <button
+              type="button"
               onClick={() => handleSend()}
               disabled={!input.trim()}
-              className="btn-primary px-3 py-2.5 disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
-              aria-label="Envoyer"
-              title="Envoyer (Entrée)"
+              className="btn-primary min-h-11 px-3.5"
+              aria-label="Envoyer la question"
+              title="Envoyer"
             >
-              <Send size={16} strokeWidth={1.5} />
+              <Send size={17} strokeWidth={1.8} />
             </button>
           )}
         </div>
-        <p className="text-[10px] text-ink-muted mt-1.5 text-right select-none">
-          Entrée pour envoyer · Shift+Entrée pour nouvelle ligne
+        <p className="mt-2 text-right text-[11px] text-ink-muted">
+          Entrée pour envoyer, Maj + Entrée pour une nouvelle ligne
         </p>
       </div>
     </div>
   );
 }
 
-// ── Empty state avec suggestions ───────────────────
-
 function EmptyState({
   courseName,
   onPick,
 }: {
   courseName: string;
-  onPick: (q: string) => void;
+  onPick: (question: string) => void;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center py-12 px-4">
-      <div className="w-12 h-12 rounded-full bg-accent-light/40 flex items-center justify-center mb-4">
-        <Sparkles size={20} strokeWidth={1.5} className="text-accent" />
+    <div className="mx-auto flex max-w-2xl flex-col items-center justify-center py-10 text-center">
+      <div className="flex h-12 w-12 items-center justify-center rounded-card border border-border bg-bg-subtle text-accent">
+        <MessageSquareText size={22} strokeWidth={1.8} />
       </div>
-      <p className="text-sm text-ink-primary font-medium text-center">
-        Discute avec EduAI à propos de « {courseName} »
-      </p>
-      <p className="text-xs text-ink-muted mt-1 text-center max-w-md">
-        Les réponses sont basées uniquement sur le contenu du PDF que tu as
-        uploadé.
+      <h2 className="mt-4 text-lg font-semibold text-ink-primary">
+        Interrogez votre cours
+      </h2>
+      <p className="mt-2 max-w-lg text-sm text-ink-secondary">
+        Les réponses s&apos;appuient sur le contenu du PDF « {courseName} ». Posez
+        une question précise ou utilisez une suggestion pour commencer.
       </p>
 
-      <div className="mt-6 w-full max-w-lg space-y-2">
-        <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-1">
-          <Lightbulb size={11} strokeWidth={1.5} />
+      <div className="mt-7 w-full max-w-xl">
+        <div className="mb-2 flex items-center gap-2 text-left text-xs font-medium uppercase text-ink-muted">
+          <Lightbulb size={14} strokeWidth={1.8} />
           Suggestions
         </div>
-        {SUGGESTED_QUESTIONS.map((q) => (
-          <button
-            key={q}
-            onClick={() => onPick(q)}
-            className="w-full text-left px-3 py-2 text-sm text-ink-secondary
-                       border border-border rounded-card bg-bg-card
-                       hover:border-accent hover:text-ink-primary hover:bg-accent-light/20
-                       transition-colors"
-          >
-            {q}
-          </button>
-        ))}
+        <div className="grid gap-2">
+          {SUGGESTED_QUESTIONS.map((question) => (
+            <button
+              key={question}
+              type="button"
+              onClick={() => onPick(question)}
+              className="rounded-card border border-border bg-bg-card px-3.5 py-3 text-left text-sm text-ink-secondary transition duration-200 hover:border-accent hover:bg-accent-soft hover:text-ink-primary"
+            >
+              {question}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
 }
-
-// ── Bulle de message ───────────────────────────────
 
 function MessageBubble({
   message,
@@ -255,9 +227,9 @@ function MessageBubble({
     try {
       await navigator.clipboard.writeText(message.content);
       setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
+      window.setTimeout(() => setCopied(false), 1500);
     } catch {
-      // ignore (navigateur sans support clipboard)
+      // Clipboard can be unavailable in restricted browsers.
     }
   };
 
@@ -265,165 +237,130 @@ function MessageBubble({
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, ease: "easeOut", delay: index * 0.02 }}
+      transition={{ duration: 0.2, ease: "easeOut", delay: index * 0.015 }}
       className={`flex ${isUser ? "justify-end" : "justify-start"}`}
     >
-      <div
-        className={`max-w-[85%] ${
+      <article
+        className={`max-w-[88%] rounded-panel border px-4 py-3 text-sm shadow-sm ${
           isUser
-            ? "bg-accent-light text-ink-primary rounded-card px-4 py-3"
-            : "bg-bg-secondary text-ink-primary rounded-card px-4 py-3"
+            ? "border-accent/20 bg-accent-soft text-ink-primary"
+            : "border-border bg-bg-subtle text-ink-primary"
         }`}
       >
         {!isUser && (
-          <span className="text-[10px] font-mono uppercase tracking-widest text-accent font-medium block mb-1">
+          <p className="mb-2 font-mono text-[11px] font-medium uppercase text-accent">
             EduAI
-          </span>
+          </p>
         )}
 
-        {/* État ERREUR */}
         {message.error ? (
-          <div className="space-y-2">
-            <div className="flex items-start gap-2 text-sm text-red-600">
-              <AlertCircle
-                size={14}
-                strokeWidth={1.5}
-                className="mt-0.5 flex-shrink-0"
-              />
+          <div className="space-y-3">
+            <div className="flex items-start gap-2 text-error">
+              <AlertCircle size={16} strokeWidth={1.8} className="mt-0.5 shrink-0" />
               <span>{message.error}</span>
             </div>
             <button
+              type="button"
               onClick={onRetry}
               disabled={!canRetry}
-              className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded
-                         border border-border hover:border-accent hover:text-accent
-                         transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="btn-secondary min-h-9 px-3 py-1.5 text-xs"
             >
-              <RefreshCw size={12} strokeWidth={1.5} />
+              <RefreshCw size={13} strokeWidth={1.8} />
               Réessayer
             </button>
           </div>
         ) : message.isLoading ? (
-          /* État CHARGEMENT (avant 1er token) */
-          <div className="flex items-center gap-2 text-sm text-ink-secondary">
-            <ThinkingDots />
-            <span>EduAI réfléchit…</span>
+          <div className="flex items-center gap-2 text-ink-secondary" role="status">
+            <Loader2 size={15} strokeWidth={1.8} className="animate-spin text-accent" />
+            <span>Recherche dans le cours...</span>
           </div>
         ) : (
           <>
-            <div className="text-sm leading-relaxed">
+            <div className="prose-chat">
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={{
                   p: ({ children }) => (
-                    <p className="my-1.5 first:mt-0 last:mb-0 whitespace-pre-wrap">
+                    <p className="my-2 first:mt-0 last:mb-0 whitespace-pre-wrap">
                       {children}
                     </p>
                   ),
                   h1: ({ children }) => (
-                    <h3 className="font-display text-base font-semibold text-ink-primary mt-3 mb-1.5 first:mt-0">
+                    <h3 className="mt-4 text-base font-semibold text-ink-primary first:mt-0">
                       {children}
                     </h3>
                   ),
                   h2: ({ children }) => (
-                    <h3 className="font-display text-base font-semibold text-ink-primary mt-3 mb-1.5 first:mt-0">
+                    <h3 className="mt-4 text-base font-semibold text-ink-primary first:mt-0">
                       {children}
                     </h3>
                   ),
                   h3: ({ children }) => (
-                    <h3 className="font-display text-sm font-semibold text-ink-primary mt-3 mb-1 first:mt-0 flex items-center gap-1.5">
-                      {children}
-                    </h3>
-                  ),
-                  h4: ({ children }) => (
-                    <h4 className="font-display text-sm font-semibold text-ink-primary mt-2 mb-1 first:mt-0">
+                    <h4 className="mt-3 text-sm font-semibold text-ink-primary first:mt-0">
                       {children}
                     </h4>
                   ),
                   ul: ({ children }) => (
-                    <ul className="my-2 space-y-1 list-none">{children}</ul>
+                    <ul className="my-2 list-disc space-y-1 pl-5">{children}</ul>
                   ),
                   ol: ({ children }) => (
-                    <ol className="my-2 space-y-1 list-decimal list-inside">
-                      {children}
-                    </ol>
-                  ),
-                  li: ({ children }) => (
-                    <li className="flex gap-2">
-                      <span className="text-accent shrink-0">•</span>
-                      <span>{children}</span>
-                    </li>
+                    <ol className="my-2 list-decimal space-y-1 pl-5">{children}</ol>
                   ),
                   blockquote: ({ children }) => (
-                    <blockquote className="my-2 pl-3 border-l-2 border-accent bg-accent-light/30 py-2 px-3 rounded-r text-ink-primary italic">
+                    <blockquote className="my-3 border-l-2 border-accent bg-bg-card py-2 pl-3 text-ink-secondary">
                       {children}
                     </blockquote>
                   ),
-                  strong: ({ children }) => (
-                    <strong className="font-semibold text-ink-primary">
-                      {children}
-                    </strong>
-                  ),
-                  em: ({ children }) => <em className="italic">{children}</em>,
                   code: ({ children }) => (
-                    <code className="bg-bg-secondary px-1 rounded text-xs font-mono">
+                    <code className="rounded bg-bg-card px-1 py-0.5 font-mono text-xs">
                       {children}
                     </code>
                   ),
                   table: ({ children }) => (
                     <div className="my-3 overflow-x-auto">
-                      <table className="text-xs border-collapse border border-border w-full">
+                      <table className="w-full border-collapse border border-border text-xs">
                         {children}
                       </table>
                     </div>
                   ),
                   th: ({ children }) => (
-                    <th className="border border-border px-2 py-1 bg-bg-secondary text-left font-semibold">
+                    <th className="border border-border bg-bg-card px-2 py-1 text-left font-semibold">
                       {children}
                     </th>
                   ),
                   td: ({ children }) => (
-                    <td className="border border-border px-2 py-1">
-                      {children}
-                    </td>
+                    <td className="border border-border px-2 py-1">{children}</td>
                   ),
-                  hr: () => <hr className="my-3 border-border" />,
                 }}
               >
                 {message.content || ""}
               </ReactMarkdown>
               {message.isStreaming && (
-                <span className="inline-block w-2 h-4 bg-accent ml-0.5 animate-pulse align-middle" />
+                <span className="ml-1 inline-block h-4 w-1.5 animate-pulse rounded-sm bg-accent align-middle" />
               )}
             </div>
 
-            {/* Badge IA + Confiance + Copier (assistant uniquement, hors streaming) */}
             {!isUser && !message.isStreaming && message.content && (
-              <div className="flex items-center gap-2 mt-2 flex-wrap">
-                {message.llmUsed && (
-                  <span className="inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider text-accent bg-accent-light/40 px-1.5 py-0.5 rounded">
-                    <Sparkles size={10} strokeWidth={2} />
-                    Généré par IA
-                  </span>
-                )}
+              <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border/70 pt-2">
                 {message.confidence !== undefined && message.confidence > 0 && (
-                  <span className="text-xs text-ink-muted">
-                    Confiance : {Math.round(message.confidence * 100)}%
+                  <span className="caption">
+                    Pertinence : {Math.round(message.confidence * 100)}%
                   </span>
                 )}
                 <button
+                  type="button"
                   onClick={handleCopy}
-                  className="ml-auto inline-flex items-center gap-1 text-[11px] text-ink-muted hover:text-accent transition-colors"
+                  className="ml-auto inline-flex min-h-8 items-center gap-1.5 rounded-card px-2 text-xs text-ink-muted transition hover:bg-bg-card hover:text-accent"
                   title="Copier la réponse"
                 >
                   {copied ? (
                     <>
-                      <Check size={11} strokeWidth={2} />
+                      <Check size={13} strokeWidth={1.8} />
                       Copié
                     </>
                   ) : (
                     <>
-                      <Copy size={11} strokeWidth={1.5} />
+                      <Copy size={13} strokeWidth={1.8} />
                       Copier
                     </>
                   )}
@@ -431,38 +368,17 @@ function MessageBubble({
               </div>
             )}
 
-            {/* Sources en footnotes */}
             {message.sources && message.sources.length > 0 && (
-              <div className="mt-3 pt-2 border-t border-border/50 space-y-1">
-                {message.sources.map((src, i) => (
-                  <SourceCard key={i} source={src} index={i} />
+              <div className="mt-3 space-y-2 border-t border-border/70 pt-3">
+                <p className="caption font-medium uppercase">Sources utilisées</p>
+                {message.sources.map((source, sourceIndex) => (
+                  <SourceCard key={sourceIndex} source={source} index={sourceIndex} />
                 ))}
               </div>
             )}
           </>
         )}
-      </div>
+      </article>
     </motion.div>
-  );
-}
-
-// ── Petits "dots" animés ───────────────────────────
-
-function ThinkingDots() {
-  return (
-    <span className="inline-flex gap-1">
-      <span
-        className="w-1.5 h-1.5 rounded-full bg-accent animate-bounce"
-        style={{ animationDelay: "0ms" }}
-      />
-      <span
-        className="w-1.5 h-1.5 rounded-full bg-accent animate-bounce"
-        style={{ animationDelay: "150ms" }}
-      />
-      <span
-        className="w-1.5 h-1.5 rounded-full bg-accent animate-bounce"
-        style={{ animationDelay: "300ms" }}
-      />
-    </span>
   );
 }

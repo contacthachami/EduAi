@@ -9,19 +9,29 @@ import {
   ArrowLeft,
   BookOpen,
   CircleDashed,
+  Download,
   Loader2,
+  Map,
   MessageSquareText,
   NotebookTabs,
   PenLine,
+  Target,
+  Layers,
 } from "lucide-react";
 import ChatInterface from "@/components/ChatInterface";
 import QuizModule from "@/components/QuizModule";
 import SummaryView from "@/components/SummaryView";
 import { fetchCourse, type CourseDetail } from "@/lib/api";
+import { api } from "@/lib/auth";
 
 type Tab = "chat" | "resume" | "quiz";
 
-const TABS: { key: Tab; label: string; description: string; icon: typeof MessageSquareText }[] = [
+const TABS: {
+  key: Tab;
+  label: string;
+  description: string;
+  icon: typeof MessageSquareText;
+}[] = [
   {
     key: "chat",
     label: "Questions",
@@ -102,7 +112,8 @@ export default function CoursePage() {
     if (currentIndex < 0) return;
 
     let nextIndex = currentIndex;
-    if (event.key === "ArrowRight") nextIndex = (currentIndex + 1) % TABS.length;
+    if (event.key === "ArrowRight")
+      nextIndex = (currentIndex + 1) % TABS.length;
     if (event.key === "ArrowLeft") {
       nextIndex = (currentIndex - 1 + TABS.length) % TABS.length;
     }
@@ -113,7 +124,9 @@ export default function CoursePage() {
       event.preventDefault();
       setActiveTab(TABS[nextIndex].key);
       window.setTimeout(() => {
-        document.getElementById(`${tabBaseId}-${TABS[nextIndex].key}-tab`)?.focus();
+        document
+          .getElementById(`${tabBaseId}-${TABS[nextIndex].key}-tab`)
+          ?.focus();
       }, 0);
     }
   };
@@ -134,7 +147,11 @@ export default function CoursePage() {
     return (
       <div className="page-container py-10">
         <div className="status-message status-message-info flex items-center gap-2">
-          <Loader2 size={16} strokeWidth={1.8} className="animate-spin text-accent" />
+          <Loader2
+            size={16}
+            strokeWidth={1.8}
+            className="animate-spin text-accent"
+          />
           <span>Chargement du cours...</span>
         </div>
       </div>
@@ -144,11 +161,18 @@ export default function CoursePage() {
   if (error || !course) {
     return (
       <div className="page-container py-10">
-        <div role="alert" className="status-message status-message-error flex gap-2">
-          <AlertCircle size={16} strokeWidth={1.8} className="mt-0.5 shrink-0" />
+        <div
+          role="alert"
+          className="status-message status-message-error flex gap-2"
+        >
+          <AlertCircle
+            size={16}
+            strokeWidth={1.8}
+            className="mt-0.5 shrink-0"
+          />
           <span>{error || "Cours introuvable."}</span>
         </div>
-        <Link href="/" className="btn-secondary mt-5">
+        <Link href="/courses" className="btn-secondary mt-5">
           <ArrowLeft size={16} strokeWidth={1.8} />
           Retour aux cours
         </Link>
@@ -158,7 +182,7 @@ export default function CoursePage() {
 
   return (
     <div className="page-container py-8 sm:py-10">
-      <Link href="/" className="btn-ghost -ml-3">
+      <Link href="/courses" className="btn-ghost -ml-3">
         <ArrowLeft size={16} strokeWidth={1.8} />
         Retour aux cours
       </Link>
@@ -204,6 +228,57 @@ export default function CoursePage() {
         </div>
       </motion.header>
 
+      {/* Feature shortcuts */}
+      {course.status === "ready" && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Link
+            href={`/course/${courseId}/flashcards`}
+            className="inline-flex items-center gap-2 rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-medium text-ink-primary hover:border-accent hover:text-accent transition"
+          >
+            <Layers size={16} strokeWidth={1.8} />
+            Flashcards
+          </Link>
+          <Link
+            href={`/course/${courseId}/mindmap`}
+            className="inline-flex items-center gap-2 rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-medium text-ink-primary hover:border-accent hover:text-accent transition"
+          >
+            <Map size={16} strokeWidth={1.8} />
+            Carte mentale
+          </Link>
+          <Link
+            href={`/course/${courseId}/exam`}
+            className="inline-flex items-center gap-2 rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-medium text-ink-primary hover:border-accent hover:text-accent transition"
+          >
+            <Target size={16} strokeWidth={1.8} />
+            Mode examen
+          </Link>
+          <button
+            onClick={async () => {
+              try {
+                const res = await api.get(`/api/export/summary/${courseId}`, {
+                  responseType: "blob",
+                });
+                const disposition = res.headers["content-disposition"] || "";
+                const match = disposition.match(/filename="([^"]+)"/);
+                const filename = match ? match[1] : `resume_${courseId}.pdf`;
+                const url = window.URL.createObjectURL(res.data);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = filename;
+                a.click();
+                window.URL.revokeObjectURL(url);
+              } catch {
+                alert("Erreur lors de l'export PDF.");
+              }
+            }}
+            className="inline-flex items-center gap-2 rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-medium text-ink-primary hover:border-accent hover:text-accent transition"
+          >
+            <Download size={16} strokeWidth={1.8} />
+            Export PDF
+          </button>
+        </div>
+      )}
+
       {course.status === "processing" && (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
@@ -213,7 +288,11 @@ export default function CoursePage() {
           aria-live="polite"
         >
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-            <Loader2 size={24} strokeWidth={1.8} className="shrink-0 animate-spin text-accent" />
+            <Loader2
+              size={24}
+              strokeWidth={1.8}
+              className="shrink-0 animate-spin text-accent"
+            />
             <div>
               <h2 className="text-base font-semibold text-ink-primary">
                 Préparation du cours en cours
@@ -228,8 +307,15 @@ export default function CoursePage() {
       )}
 
       {course.status === "error" && (
-        <div role="alert" className="status-message status-message-error mt-6 flex gap-2">
-          <AlertCircle size={16} strokeWidth={1.8} className="mt-0.5 shrink-0" />
+        <div
+          role="alert"
+          className="status-message status-message-error mt-6 flex gap-2"
+        >
+          <AlertCircle
+            size={16}
+            strokeWidth={1.8}
+            className="mt-0.5 shrink-0"
+          />
           <span>
             L&apos;indexation du cours a échoué. Ajoutez à nouveau le PDF ou
             vérifiez que le document contient du texte lisible.
@@ -289,7 +375,10 @@ export default function CoursePage() {
                   className="panel overflow-hidden"
                 >
                   <div className="h-[min(720px,calc(100vh-230px))] min-h-[540px]">
-                    <ChatInterface courseId={courseId} courseName={course.name} />
+                    <ChatInterface
+                      courseId={courseId}
+                      courseName={course.name}
+                    />
                   </div>
                 </motion.div>
               )}

@@ -27,5 +27,12 @@ transformers>=4.47.0
 rouge-score>=0.1.2
 bert-score>=0.3.13
 
+# Authentification
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+
+# Export PDF
+reportlab>=4.0.0
+
 # Utilitaires
 numpy>=1.26.4

@@ -5,16 +5,14 @@ enregistre les routers.
 """
 
 import os
-
-# ── Désactiver les requêtes réseau HuggingFace (modèles déjà en cache local) ──
-os.environ["HF_HUB_OFFLINE"] = "1"
-os.environ["TRANSFORMERS_OFFLINE"] = "1"
+import traceback
 
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from backend.config import get_settings
 from backend.database.mongodb import connect_db, close_db
@@ -34,6 +32,15 @@ async def lifespan(app: FastAPI):
     # Configurer le cache des modèles
     os.environ["HF_HOME"] = settings.hf_home
     os.environ["TRANSFORMERS_CACHE"] = settings.transformers_cache
+    os.environ["HF_HUB_OFFLINE"] = "1" if settings.hf_hub_offline else "0"
+    os.environ["TRANSFORMERS_OFFLINE"] = "1" if settings.transformers_offline else "0"
+    logger.info(
+        "Cache modèles: HF_HOME=%s, TRANSFORMERS_CACHE=%s, offline=%s/%s",
+        settings.hf_home,
+        settings.transformers_cache,
+        os.environ["HF_HUB_OFFLINE"],
+        os.environ["TRANSFORMERS_OFFLINE"],
+    )
 
     # Connexion MongoDB
     await connect_db()
@@ -46,18 +53,23 @@ async def lifespan(app: FastAPI):
     await asyncio.to_thread(embed_query, "warmup")
     logger.info("Modèle d'embeddings prêt.")
 
-    # Vérifier la disponibilité du LLM (Ollama) — non bloquant
+    # Vérifier la disponibilité du LLM — non bloquant
     if settings.enable_llm:
         try:
             from backend.services.llm_client import get_client
             available = await get_client().is_available(force=True)
+            llm_backend = (settings.llm_backend or "ollama").lower()
+            model_name = settings.groq_model if llm_backend == "groq" else settings.ollama_model
+            endpoint = settings.groq_base_url if llm_backend == "groq" else settings.ollama_host
             if available:
-                logger.info("LLM Ollama disponible (modèle: %s)", settings.ollama_model)
+                logger.info("LLM %s disponible (modèle: %s)", llm_backend, model_name)
             else:
                 logger.warning(
-                    "LLM Ollama INDISPONIBLE (host=%s, model=%s). "
+                    "LLM %s INDISPONIBLE (endpoint=%s, model=%s). "
                     "Le système fonctionnera en mode extractif (fallback).",
-                    settings.ollama_host, settings.ollama_model,
+                    llm_backend,
+                    endpoint,
+                    model_name,
                 )
         except Exception:
             logger.exception("Erreur lors du health-check LLM (mode fallback activé).")
@@ -109,21 +121,47 @@ app = FastAPI(
 
 # CORS
 settings = get_settings()
+allowed_origins = [
+    origin.strip()
+    for origin in settings.allowed_origins.split(",")
+    if origin.strip()
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.allowed_origins.split(","),
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+
+@app.middleware("http")
+async def log_errors(request: Request, call_next):
+    """Log all unhandled exceptions with full traceback."""
+    try:
+        return await call_next(request)
+    except Exception as exc:
+        logger.error(
+            "Unhandled error on %s %s: %s\n%s",
+            request.method, request.url.path,
+            exc, traceback.format_exc()
+        )
+        return JSONResponse(status_code=500, content={"detail": str(exc)})
+
 # Enregistrer les routers
 from backend.routers import courses, qa, summary, quiz  # noqa: E402
+from backend.routers import auth, analytics, flashcards, mindmap, exam, export  # noqa: E402
 
+app.include_router(auth.router, prefix="/api/auth", tags=["Authentification"])
 app.include_router(courses.router, prefix="/api/courses", tags=["Cours"])
 app.include_router(qa.router, prefix="/api/qa", tags=["Questions-Réponses"])
 app.include_router(summary.router, prefix="/api/summary", tags=["Résumés"])
 app.include_router(quiz.router, prefix="/api/quiz", tags=["Quiz"])
+app.include_router(analytics.router, prefix="/api/analytics", tags=["Analytics"])
+app.include_router(flashcards.router, prefix="/api/flashcards", tags=["Flashcards"])
+app.include_router(mindmap.router, prefix="/api/mindmap", tags=["Mind Map"])
+app.include_router(exam.router, prefix="/api/exam", tags=["Examens"])
+app.include_router(export.router, prefix="/api/export", tags=["Export"])
 
 
 @app.get("/", tags=["Santé"])

@@ -23,6 +23,7 @@ models_cache/
 # Données
 data/faiss_indexes/*.faiss
 data/sample_courses/*.pdf
+logs/
 
 # Environnement
 .env

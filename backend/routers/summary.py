@@ -4,7 +4,7 @@ import asyncio
 import logging
 from typing import Set
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 
 from backend.config import get_settings
 from backend.models.schemas import (
@@ -21,6 +21,7 @@ from backend.database.mongodb import (
 )
 from backend.services.summarizer import summarize_course
 from backend.services.llm_summarizer import refine_chapter
+from backend.services.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -192,10 +193,9 @@ async def pregenerate_summary_in_background(course_id: str) -> None:
 
 
 @router.get("/{course_id}", response_model=SummaryResponse)
-async def get_summary(course_id: str):
+async def get_summary(course_id: str, current_user: dict = Depends(get_current_user)):
     """Renvoie les résumés depuis le cache, ou lance la génération en arrière-plan."""
-    # Vérifier que le cours existe
-    course = await get_course_by_id(course_id)
+    course = await get_course_by_id(course_id, user_id=current_user["user_id"])
     if not course:
         raise HTTPException(status_code=404, detail="Cours introuvable.")
 

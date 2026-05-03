@@ -4,7 +4,7 @@ import asyncio
 import logging
 import uuid
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 
 from backend.models.schemas import (
     QuizResponse, QuizQuestion, QuizSubmission, QuizResult,
@@ -14,6 +14,7 @@ from backend.database.mongodb import (
     get_cached_course_quiz, save_cached_course_quiz, delete_cached_course_quiz,
 )
 from backend.services.llm_quiz import generate_quiz_llm
+from backend.services.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -76,13 +77,10 @@ async def get_course_quiz(
     course_id: str,
     num_questions: int = Query(default=DEFAULT_NUM_QUESTIONS, ge=1, le=30),
     regenerate: bool = Query(default=False, description="Forcer la régénération (ignore le cache)"),
+    current_user: dict = Depends(get_current_user),
 ):
-    """Renvoie un quiz pour le cours.
-
-    - Si `num_questions == DEFAULT_NUM_QUESTIONS` et `regenerate=False` → sert le cache si dispo.
-    - Sinon → génère à la volée (LLM puis fallback extractif).
-    """
-    course = await get_course_by_id(course_id)
+    """Renvoie un quiz pour le cours."""
+    course = await get_course_by_id(course_id, user_id=current_user["user_id"])
     if not course:
         raise HTTPException(status_code=404, detail="Cours introuvable.")
 
@@ -137,7 +135,7 @@ async def get_course_quiz(
 
 
 @router.post("/submit", response_model=QuizResult)
-async def submit_quiz(submission: QuizSubmission):
+async def submit_quiz(submission: QuizSubmission, current_user: dict = Depends(get_current_user)):
     """Soumet les réponses d'un quiz et calcule le score."""
     quiz_data = await get_quiz(submission.quiz_id)
     if not quiz_data:

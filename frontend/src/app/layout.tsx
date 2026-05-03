@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
 import AppHeader from "@/components/AppHeader";
+import AuthHydration from "@/components/AuthHydration";
 
 export const metadata: Metadata = {
   title: "EduAI - Assistant pédagogique intelligent",
@@ -14,14 +15,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="fr">
       <body>
+        <AuthHydration />
         <AppHeader />
         <main className="min-h-[calc(100vh-4rem)]">{children}</main>
       </body>

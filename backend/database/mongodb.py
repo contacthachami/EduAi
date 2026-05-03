@@ -48,9 +48,12 @@ async def insert_course(course_data: dict) -> str:
     return str(result.inserted_id)
 
 
-async def get_all_courses() -> list:
+async def get_all_courses(user_id: str | None = None) -> list:
     db = get_db()
-    cursor = db.courses.find({}, {"_id": 1, "name": 1, "created_at": 1, "chunks_count": 1, "pages": 1})
+    query = {}
+    if user_id:
+        query["user_id"] = user_id
+    cursor = db.courses.find(query, {"_id": 1, "name": 1, "created_at": 1, "chunks_count": 1, "pages": 1})
     courses = []
     async for doc in cursor:
         doc["id"] = str(doc.pop("_id"))
@@ -58,11 +61,14 @@ async def get_all_courses() -> list:
     return courses
 
 
-async def get_course_by_id(course_id: str) -> dict | None:
+async def get_course_by_id(course_id: str, user_id: str | None = None) -> dict | None:
     from bson import ObjectId
     db = get_db()
     try:
-        doc = await db.courses.find_one({"_id": ObjectId(course_id)})
+        query = {"_id": ObjectId(course_id)}
+        if user_id:
+            query["user_id"] = user_id
+        doc = await db.courses.find_one(query)
     except Exception:
         return None
     if doc:
@@ -70,11 +76,14 @@ async def get_course_by_id(course_id: str) -> dict | None:
     return doc
 
 
-async def delete_course_by_id(course_id: str) -> bool:
+async def delete_course_by_id(course_id: str, user_id: str | None = None) -> bool:
     from bson import ObjectId
     db = get_db()
     try:
-        result = await db.courses.delete_one({"_id": ObjectId(course_id)})
+        query = {"_id": ObjectId(course_id)}
+        if user_id:
+            query["user_id"] = user_id
+        result = await db.courses.delete_one(query)
         # Supprimer aussi les chunks associés
         await db.chunks.delete_many({"course_id": course_id})
         # Supprimer les sessions QA

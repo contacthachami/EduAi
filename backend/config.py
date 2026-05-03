@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     # Modèles HuggingFace
     hf_home: str = "./models_cache"
     transformers_cache: str = "./models_cache"
+    hf_hub_offline: bool = False
+    transformers_offline: bool = False
     embedding_model: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
     qa_model: str = "etalab-ia/camembert-base-squadFR-fquad-piaf"
     summarizer_model: str = "csebuetnlp/mT5_multilingual_XLSum"
@@ -44,8 +46,8 @@ class Settings(BaseSettings):
     groq_base_url: str = "https://api.groq.com/openai/v1"
     groq_timeout_seconds: int = 60
     # ── Ollama (fallback local) ──
-    ollama_host: str = "http://localhost:11434"
-    ollama_model: str = "qwen2.5:7b-instruct"
+    # ollama_host: str = "http://localhost:11434"
+    # ollama_model: str = "qwen2.5:7b-instruct"
     ollama_timeout_seconds: int = 2000    # par requête (CPU ≈ 0.7 tok/s sur 7B, marge confortable)
     ollama_num_ctx: int = 4096            # taille contexte (assez pour chapitre tronqué à 6000 c.)
     ollama_max_tokens_summary: int = 600  # plafond résumé narratif (2-3 paragraphes ≈ 400-500 tok + titre + concepts)

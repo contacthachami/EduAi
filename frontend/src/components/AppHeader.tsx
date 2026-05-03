@@ -2,22 +2,30 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
-import { Plus } from "lucide-react";
-
-const navItems = [
-  { href: "/", label: "Cours" },
-  { href: "/upload", label: "Ajouter un cours" },
-];
+import { usePathname, useRouter } from "next/navigation";
+import { Plus, LogOut } from "lucide-react";
+import { useAuth } from "@/lib/auth";
 
 export default function AppHeader() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, logout } = useAuth();
+
+  // Hide header on landing and auth pages
+  if (pathname === "/landing" || pathname === "/auth") return null;
+
+  const navItems = user
+    ? [
+        { href: "/courses", label: "Cours" },
+        { href: "/upload", label: "Ajouter un cours" },
+      ]
+    : [];
 
   return (
     <header className="border-b border-border bg-bg-primary/95">
       <nav className="page-container flex min-h-16 items-center justify-between gap-4">
         <Link
-          href="/"
+          href="/courses"
           className="flex min-h-10 items-center gap-2 rounded-card pr-2 font-display text-lg font-semibold text-ink-primary"
           aria-label="EduAI, revenir aux cours"
         >
@@ -31,12 +39,13 @@ export default function AppHeader() {
           <span>EduAI</span>
         </Link>
 
-        <div className="flex items-center gap-1 sm:gap-2" aria-label="Navigation principale">
+        <div
+          className="flex items-center gap-1 sm:gap-2"
+          aria-label="Navigation principale"
+        >
           {navItems.map((item) => {
             const isActive =
-              item.href === "/"
-                ? pathname === "/"
-                : pathname === item.href || pathname.startsWith(`${item.href}/`);
+              pathname === item.href || pathname.startsWith(`${item.href}/`);
 
             return (
               <Link
@@ -46,12 +55,29 @@ export default function AppHeader() {
                 aria-current={isActive ? "page" : undefined}
               >
                 {item.href === "/upload" && (
-                  <Plus size={15} strokeWidth={1.8} className="hidden sm:block" />
+                  <Plus
+                    size={15}
+                    strokeWidth={1.8}
+                    className="hidden sm:block"
+                  />
                 )}
                 {item.label}
               </Link>
             );
           })}
+
+          {user && (
+            <button
+              onClick={() => {
+                logout();
+                router.push("/landing");
+              }}
+              className="nav-link flex items-center gap-1 text-sm"
+            >
+              <LogOut size={14} />
+              Déconnexion
+            </button>
+          )}
         </div>
       </nav>
     </header>

@@ -1,18 +1,27 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowLeft, FileCheck2 } from "lucide-react";
 import FileUploader from "@/components/FileUploader";
+import { useAuth } from "@/lib/auth";
 
 export default function UploadPage() {
   const router = useRouter();
+  const { user, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading && !user) router.replace("/landing");
+  }, [loading, user, router]);
+
+  if (loading || !user) return null;
 
   return (
     <div className="page-container py-8 sm:py-12">
       <div className="mx-auto max-w-content">
-        <Link href="/" className="btn-ghost -ml-3">
+        <Link href="/courses" className="btn-ghost -ml-3">
           <ArrowLeft size={16} strokeWidth={1.8} />
           Retour aux cours
         </Link>
@@ -31,12 +40,15 @@ export default function UploadPage() {
               </h1>
               <p className="mt-3 max-w-2xl text-sm text-ink-secondary">
                 Sélectionnez un PDF de cours. EduAI extrait le texte, prépare
-                les segments de recherche et ouvre ensuite l&apos;espace de travail.
+                les segments de recherche et ouvre ensuite l&apos;espace de
+                travail.
               </p>
             </div>
             <div className="px-5 py-5 sm:px-7 sm:py-6">
               <FileUploader
-                onUploadComplete={(courseId) => router.push(`/course/${courseId}`)}
+                onUploadComplete={(courseId) =>
+                  router.push(`/course/${courseId}`)
+                }
               />
             </div>
           </section>

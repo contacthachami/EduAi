@@ -171,6 +171,15 @@ class OllamaClient:
         )
         return _parse_json_loose(raw)
 
+    async def generate_json(self, prompt: str, *, temperature: float = 0.2, retries: int = 2) -> dict | list:
+        """Raccourci : prend un seul prompt et retourne du JSON parsé."""
+        return await self.chat_json(
+            system="Tu es un assistant qui répond UNIQUEMENT en JSON valide.",
+            user=prompt,
+            temperature=temperature,
+            retries=retries,
+        )
+
     # ── Streaming (pour le chat utilisateur) ────────────────────────
 
     async def chat_stream(
@@ -393,6 +402,15 @@ class GroqClient:
             retries=retries,
         )
         return _parse_json_loose(raw)
+
+    async def generate_json(self, prompt: str, *, temperature: float = 0.2, retries: int = 2) -> dict | list:
+        """Raccourci : prend un seul prompt et retourne du JSON parsé."""
+        return await self.chat_json(
+            system="Tu es un assistant qui répond UNIQUEMENT en JSON valide.",
+            user=prompt,
+            temperature=temperature,
+            retries=retries,
+        )
 
     async def chat_stream(
         self,

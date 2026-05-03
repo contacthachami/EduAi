@@ -1,0 +1,89 @@
+name: eduai
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: eduai-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: "${MONGO_ROOT_USERNAME:-eduai_admin}"
+      MONGO_INITDB_ROOT_PASSWORD: "${MONGO_ROOT_PASSWORD:-change-this-mongo-password}"
+    volumes:
+      - eduai_mongo_data:/data/db
+    networks:
+      - eduai_internal
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    image: "${EDUAI_BACKEND_IMAGE:-eduai-backend:latest}"
+    container_name: eduai-backend
+    restart: unless-stopped
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    environment:
+      MONGODB_URL: "mongodb://${MONGO_ROOT_USERNAME:-eduai_admin}:${MONGO_ROOT_PASSWORD:-change-this-mongo-password}@mongodb:27017/${MONGODB_DB_NAME:-eduai_db}?authSource=admin"
+      MONGODB_DB_NAME: "${MONGODB_DB_NAME:-eduai_db}"
+      SECRET_KEY: "${SECRET_KEY:-change-this-secret-key}"
+      ALLOWED_ORIGINS: "${ALLOWED_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}"
+      HF_HOME: /app/models_cache
+      TRANSFORMERS_CACHE: /app/models_cache
+      HF_HUB_OFFLINE: "${HF_HUB_OFFLINE:-0}"
+      TRANSFORMERS_OFFLINE: "${TRANSFORMERS_OFFLINE:-0}"
+      ENABLE_LLM: "${ENABLE_LLM:-true}"
+      LLM_BACKEND: "${LLM_BACKEND:-groq}"
+      GROQ_API_KEY: "${GROQ_API_KEY:-}"
+      GROQ_MODEL: "${GROQ_MODEL:-llama-3.3-70b-versatile}"
+      OLLAMA_HOST: "${OLLAMA_HOST:-http://host.docker.internal:11434}"
+      MAX_PDF_SIZE_MB: "${MAX_PDF_SIZE_MB:-50}"
+      MAX_COURSES_PER_USER: "${MAX_COURSES_PER_USER:-20}"
+    volumes:
+      - eduai_backend_data:/app/data
+      - eduai_models_cache:/app/models_cache
+    ports:
+      - "${BACKEND_BIND:-127.0.0.1}:${BACKEND_PORT:-8000}:8000"
+    networks:
+      - eduai_internal
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        BACKEND_URL: "${BACKEND_INTERNAL_URL:-http://backend:8000}"
+    image: "${EDUAI_FRONTEND_IMAGE:-eduai-frontend:latest}"
+    container_name: eduai-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      BACKEND_URL: "${BACKEND_INTERNAL_URL:-http://backend:8000}"
+      NEXT_TELEMETRY_DISABLED: "1"
+    ports:
+      - "${FRONTEND_BIND:-0.0.0.0}:${FRONTEND_PORT:-3000}:3000"
+    networks:
+      - eduai_internal
+
+networks:
+  eduai_internal:
+    name: eduai_internal
+    driver: bridge
+
+volumes:
+  eduai_mongo_data:
+    name: eduai_mongo_data
+  eduai_backend_data:
+    name: eduai_backend_data
+  eduai_models_cache:
+    name: eduai_models_cache

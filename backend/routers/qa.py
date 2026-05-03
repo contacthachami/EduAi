@@ -6,7 +6,7 @@ import logging
 import uuid
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import StreamingResponse
 
 from backend.config import get_settings
@@ -21,6 +21,7 @@ from backend.services.retriever import search
 from backend.services.qa_engine import answer_question
 from backend.services.llm_qa import answer_with_llm, stream_answer_with_llm
 from backend.services.llm_client import LLMUnavailable
+from backend.services.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -68,7 +69,7 @@ async def _load_history(session_id: str, max_turns: int = 3) -> list[dict]:
 
 
 @router.post("/ask", response_model=AnswerResponse)
-async def ask_question(request: QuestionRequest):
+async def ask_question(request: QuestionRequest, current_user: dict = Depends(get_current_user)):
     """Pose une question sur un cours — pipeline RAG conversationnel (Groq-first).
 
     Contrairement à l'ancienne version, on n'écarte plus brutalement les questions
@@ -82,7 +83,7 @@ async def ask_question(request: QuestionRequest):
         raise HTTPException(status_code=400, detail="La question ne peut pas être vide.")
 
     # Vérifier que le cours existe
-    course = await get_course_by_id(request.course_id)
+    course = await get_course_by_id(request.course_id, user_id=current_user["user_id"])
     if not course:
         raise HTTPException(status_code=404, detail="Cours introuvable.")
 
@@ -204,7 +205,7 @@ async def ask_question(request: QuestionRequest):
 
 
 @router.get("/history/{session_id}", response_model=list[HistoryEntry])
-async def get_history(session_id: str):
+async def get_history(session_id: str, current_user: dict = Depends(get_current_user)):
     """Récupère l'historique d'une session de Q&A."""
     exchanges = await get_qa_history(session_id)
     return [
@@ -250,24 +251,12 @@ async def _retrieve_contexts(course_id: str, question: str) -> tuple[list[dict],
 
 
 @router.post("/ask/stream")
-async def ask_question_stream(request: QuestionRequest):
-    """Stream la réponse Q&A token-par-token via SSE.
-
-    Format SSE :
-      event: sources\\n
-      data: {"sources":[...], "session_id":"..."}\\n\\n
-      event: token\\n
-      data: {"text":"..."}\\n\\n
-      ...
-      event: done\\n
-      data: {"finished":true}\\n\\n
-
-    Si le LLM est indisponible, fallback en un seul event 'token' avec la réponse extractive.
-    """
+async def ask_question_stream(request: QuestionRequest, current_user: dict = Depends(get_current_user)):
+    """Stream la réponse Q&A token-par-token via SSE."""
     if not request.question.strip():
         raise HTTPException(status_code=400, detail="La question ne peut pas être vide.")
 
-    course = await get_course_by_id(request.course_id)
+    course = await get_course_by_id(request.course_id, user_id=current_user["user_id"])
     if not course:
         raise HTTPException(status_code=404, detail="Cours introuvable.")
 

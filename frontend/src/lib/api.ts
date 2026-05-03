@@ -8,6 +8,17 @@ const api = axios.create({
   timeout: 600_000, // 10 min pour la première génération de résumés (32 chapitres sur CPU)
 });
 
+// Inject auth token from localStorage
+api.interceptors.request.use((config) => {
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("eduai_token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+  return config;
+});
+
 // ── Types ──────────────────────────────────────────
 
 export interface CourseInfo {
@@ -199,9 +210,16 @@ export function askQuestionStream(
 
   (async () => {
     try {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (typeof window !== "undefined") {
+        const token = localStorage.getItem("eduai_token");
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+      }
       const resp = await fetch("/api/qa/ask/stream", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           course_id: courseId,
           question,

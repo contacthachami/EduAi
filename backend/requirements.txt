@@ -30,6 +30,8 @@ bert-score>=0.3.13
 # Authentification
 python-jose[cryptography]>=3.3.0
 passlib[bcrypt]>=1.7.4
+bcrypt>=3.0.0,<4.0.0
+email-validator>=2.1.0
 
 # Export PDF
 reportlab>=4.0.0

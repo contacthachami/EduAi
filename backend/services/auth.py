@@ -22,11 +22,12 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 jours
 
 
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    # bcrypt silently truncates at 72 bytes — be explicit to avoid surprises
+    return pwd_context.hash(password[:72])
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return pwd_context.verify(plain, hashed)
+    return pwd_context.verify(plain[:72], hashed)
 
 
 def create_access_token(user_id: str, email: str) -> str:

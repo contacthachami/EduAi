@@ -1,6 +1,7 @@
-"""Router d'authentification — inscription, connexion, profil."""
+"""Router d'authentification — inscription, connexion, profil, réinitialisation."""
 
-from datetime import datetime, timezone
+import secrets
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict
 
 from fastapi import APIRouter, HTTPException, Depends, status
@@ -39,9 +40,19 @@ class UserProfile(BaseModel):
     id: str
     name: str
     email: str
+    role: str
     created_at: datetime
     plan: str
     courses_count: int
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str = Field(..., min_length=6, max_length=128)
 
 
 # ── Endpoints ───────────────────────────────────────
@@ -64,6 +75,7 @@ async def register(req: RegisterRequest):
         "email": req.email.lower(),
         "password_hash": hash_password(req.password),
         "plan": "free",
+        "role": "user",
         "created_at": datetime.now(timezone.utc),
         "settings": {
             "daily_goal_minutes": 30,
@@ -81,6 +93,7 @@ async def register(req: RegisterRequest):
             "name": user_doc["name"],
             "email": user_doc["email"],
             "plan": user_doc["plan"],
+            "role": user_doc["role"],
         },
     )
 
@@ -107,6 +120,7 @@ async def login(req: LoginRequest):
             "name": user["name"],
             "email": user["email"],
             "plan": user.get("plan", "free"),
+            "role": user.get("role", "user"),
         },
     )
 
@@ -127,7 +141,86 @@ async def get_profile(current_user: dict = Depends(get_current_user)):
         id=str(user["_id"]),
         name=user["name"],
         email=user["email"],
+        role=user.get("role", "user"),
         created_at=user["created_at"],
         plan=user.get("plan", "free"),
         courses_count=courses_count,
     )
+
+
+# ── Mot de passe oublié ─────────────────────────────
+
+@router.post("/forgot-password")
+async def forgot_password(req: ForgotPasswordRequest):
+    """Demander la réinitialisation du mot de passe.
+    
+    Génère un token de réinitialisation valable 1 heure.
+    En production, ce token serait envoyé par email.
+    """
+    db = get_db()
+    user = await db.users.find_one({"email": req.email.lower()})
+
+    # Anti-énumération : toujours retourner un succès, même si l'email n'existe pas
+    if not user:
+        return {
+            "message": "Si cet email est enregistré, un lien de réinitialisation a été généré.",
+            "reset_link": None,
+        }
+
+    # Invalider les anciens tokens non utilisés
+    await db.password_resets.update_many(
+        {"email": req.email.lower(), "used": False},
+        {"$set": {"used": True}},
+    )
+
+    token = secrets.token_urlsafe(32)
+    await db.password_resets.insert_one({
+        "user_id": str(user["_id"]),
+        "email": req.email.lower(),
+        "token": token,
+        "created_at": datetime.now(timezone.utc),
+        "expires_at": datetime.now(timezone.utc) + timedelta(hours=1),
+        "used": False,
+    })
+
+    reset_link = f"/auth/reset-password?token={token}"
+    return {
+        "message": "Lien de réinitialisation généré.",
+        "reset_link": reset_link,
+    }
+
+
+@router.post("/reset-password")
+async def reset_password(req: ResetPasswordRequest):
+    """Réinitialiser le mot de passe avec un token valide."""
+    db = get_db()
+
+    reset_doc = await db.password_resets.find_one({
+        "token": req.token,
+        "used": False,
+    })
+
+    if not reset_doc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Token invalide ou déjà utilisé.",
+        )
+
+    now = datetime.now(timezone.utc)
+    if reset_doc["expires_at"].replace(tzinfo=timezone.utc) < now:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Ce lien a expiré. Veuillez en demander un nouveau.",
+        )
+
+    from bson import ObjectId
+    await db.users.update_one(
+        {"_id": ObjectId(reset_doc["user_id"])},
+        {"$set": {"password_hash": hash_password(req.new_password)}},
+    )
+    await db.password_resets.update_one(
+        {"_id": reset_doc["_id"]},
+        {"$set": {"used": True}},
+    )
+
+    return {"message": "Mot de passe réinitialisé avec succès."}

@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useAuth } from "@/lib/auth";
-import { BookOpen, Mail, Lock, User } from "lucide-react";
+import { Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 
 export default function AuthPage() {
   const [mode, setMode] = useState<"login" | "register">("login");
@@ -13,6 +14,7 @@ export default function AuthPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { login, register } = useAuth();
   const router = useRouter();
 
@@ -43,8 +45,14 @@ export default function AuthPage() {
       >
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 mb-2">
-            <BookOpen className="w-8 h-8 text-[#B85B2A]" />
+          <div className="inline-flex items-center gap-2.5 mb-2">
+            <Image
+              src="/favicon.svg"
+              alt="EduAI"
+              width={36}
+              height={36}
+              className="rounded-lg"
+            />
             <span className="font-serif text-2xl font-bold text-[#171412]">
               EduAI
             </span>
@@ -96,20 +104,46 @@ export default function AuthPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[#171412] mb-1">
-                Mot de passe
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-sm font-medium text-[#171412]">
+                  Mot de passe
+                </label>
+                {mode === "login" && (
+                  <a
+                    href="/auth/forgot-password"
+                    className="text-xs text-[#B85B2A] hover:underline"
+                  >
+                    Mot de passe oublié ?
+                  </a>
+                )}
+              </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8D837A]" />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-md border border-[#DED8D1] bg-[#F6F3EF] text-[#171412] placeholder:text-[#8D837A] focus:outline-none focus:ring-2 focus:ring-[#B85B2A]/30 focus:border-[#B85B2A]"
+                  className="w-full pl-10 pr-10 py-2.5 rounded-md border border-[#DED8D1] bg-[#F6F3EF] text-[#171412] placeholder:text-[#8D837A] focus:outline-none focus:ring-2 focus:ring-[#B85B2A]/30 focus:border-[#B85B2A]"
                   placeholder="••••••••"
                   required
                   minLength={6}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={
+                    showPassword
+                      ? "Masquer le mot de passe"
+                      : "Afficher le mot de passe"
+                  }
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8D837A] hover:text-[#5F5750] transition-colors"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
               </div>
             </div>
 

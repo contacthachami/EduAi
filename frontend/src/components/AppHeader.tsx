@@ -11,13 +11,17 @@ export default function AppHeader() {
   const router = useRouter();
   const { user, logout } = useAuth();
 
-  // Hide header on landing and auth pages
-  if (pathname === "/landing" || pathname === "/auth") return null;
+  // Hide header on landing, auth and admin pages (admin has its own header)
+  if (pathname === "/landing" || pathname === "/auth" || pathname === "/admin")
+    return null;
 
   const navItems = user
     ? [
         { href: "/courses", label: "Cours" },
         { href: "/upload", label: "Ajouter un cours" },
+        ...(user.role === "admin"
+          ? [{ href: "/admin", label: "Administration" }]
+          : []),
       ]
     : [];
 

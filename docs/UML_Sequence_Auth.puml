@@ -1,0 +1,130 @@
+@startuml EduAI_Sequence_Auth
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam sequence {
+  ArrowColor #2E86C1
+  ActorBorderColor #1E8449
+  LifeLineBorderColor #2E86C1
+  LifeLineBackgroundColor #EBF5FB
+  ParticipantBorderColor #2E86C1
+  ParticipantBackgroundColor #EBF5FB
+  ParticipantFontSize 13
+  ParticipantFontName Arial
+  NoteBackgroundColor #FEF9E7
+  NoteBorderColor #D4AC0D
+}
+skinparam actor {
+  BorderColor #1E8449
+  BackgroundColor #D5F5E3
+}
+
+title **EduAI — Séquence 1 : Inscription & Connexion**
+
+actor "Étudiant" as Student
+participant "Next.js\nFrontend" as Frontend
+participant "FastAPI\nBackend" as Backend
+participant "AuthService\n(JWT + bcrypt)" as Auth
+database "MongoDB\n(users)" as DB
+
+== Inscription (Register) ==
+
+Student -> Frontend : Remplit formulaire\n(name, email, password)
+activate Frontend
+
+Frontend -> Backend : POST /api/auth/register\n{"name","email","password"}
+activate Backend
+
+Backend -> Backend : Valide champs\n(Pydantic — EmailStr, min_length)
+
+Backend -> DB : find_one({email})
+activate DB
+DB --> Backend : null (email libre)
+deactivate DB
+
+Backend -> Auth : hash_password(password[:72])
+activate Auth
+note right of Auth : bcrypt 3.2.2\n(salage automatique)
+Auth --> Backend : password_hash
+deactivate Auth
+
+Backend -> DB : insert_one(user_doc)
+activate DB
+DB --> Backend : user_id (ObjectId)
+deactivate DB
+
+Backend -> Auth : create_access_token(user_id, email)
+activate Auth
+note right of Auth : JWT HS256\n7 jours d'expiration
+Auth --> Backend : token (JWT)
+deactivate Auth
+
+Backend --> Frontend : 201 Created\n{"token": "...", "user": {...}}
+deactivate Backend
+
+Frontend -> Frontend : Stocke token\n(localStorage)
+Frontend --> Student : Redirection vers /dashboard
+deactivate Frontend
+
+|||
+== Connexion (Login) ==
+
+Student -> Frontend : Saisit email + mot de passe
+activate Frontend
+
+Frontend -> Backend : POST /api/auth/login\n{"email","password"}
+activate Backend
+
+Backend -> DB : find_one({email: email.lower()})
+activate DB
+DB --> Backend : user_doc (ou null)
+deactivate DB
+
+alt Email inconnu
+  Backend --> Frontend : 401 Unauthorized\n"Email ou mot de passe incorrect"
+else Email trouvé
+  Backend -> Auth : verify_password(password[:72], hash)
+  activate Auth
+  Auth --> Backend : True / False
+  deactivate Auth
+
+  alt Mot de passe incorrect
+    Backend --> Frontend : 401 Unauthorized
+  else Mot de passe correct
+    Backend -> Auth : create_access_token(user_id, email)
+    activate Auth
+    Auth --> Backend : token (JWT)
+    deactivate Auth
+    Backend --> Frontend : 200 OK\n{"token": "...", "user": {...}}
+  end
+end
+
+deactivate Backend
+
+Frontend -> Frontend : Stocke token
+Frontend --> Student : Accès au tableau de bord
+deactivate Frontend
+
+|||
+== Accès protégé (Middleware JWT) ==
+
+Student -> Frontend : Navigue vers une page protégée
+Frontend -> Backend : GET /api/... \nAuthorization: Bearer <token>
+activate Backend
+
+Backend -> Auth : get_current_user(credentials)
+activate Auth
+Auth -> Auth : jwt.decode(token, SECRET_KEY)
+note right of Auth : Vérifie signature HS256\net expiration (7j)
+
+alt Token valide
+  Auth --> Backend : {"user_id": "...", "email": "..."}
+  Backend --> Frontend : 200 OK + données
+else Token invalide / expiré
+  Auth --> Backend : HTTPException 401
+  Backend --> Frontend : 401 Unauthorized
+  Frontend --> Student : Redirection /auth
+end
+deactivate Auth
+deactivate Backend
+
+@enduml

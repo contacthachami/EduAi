@@ -1,0 +1,120 @@
+@startuml EduAI_Sequence_Upload
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam sequence {
+  ArrowColor #2E86C1
+  ActorBorderColor #1E8449
+  LifeLineBorderColor #2E86C1
+  LifeLineBackgroundColor #EBF5FB
+  ParticipantBorderColor #2E86C1
+  ParticipantBackgroundColor #EBF5FB
+  ParticipantFontSize 12
+  ParticipantFontName Arial
+  NoteBackgroundColor #FEF9E7
+  NoteBorderColor #D4AC0D
+}
+skinparam actor {
+  BorderColor #1E8449
+  BackgroundColor #D5F5E3
+}
+
+title **EduAI — Séquence 2 : Upload & Indexation d'un cours PDF**
+
+actor "Étudiant" as Student
+participant "Next.js\nFrontend" as Frontend
+participant "FastAPI\nBackend\n(courses router)" as Backend
+participant "PDF Extractor\n(PyMuPDF)" as PDF
+participant "Chunker\n(NLP maison)" as Chunker
+participant "Embedder\n(MiniLM BERT)" as Embedder
+participant "FAISS\nIndex" as FAISS
+database "MongoDB" as DB
+participant "LLM\nPré-génération" as LLM
+
+Student -> Frontend : Sélectionne fichier PDF\net saisit nom du cours
+activate Frontend
+
+Frontend -> Backend : POST /api/courses/upload\n(multipart/form-data)\n[Authorization: Bearer JWT]
+activate Backend
+
+Backend -> Backend : Valide JWT\n(get_current_user)
+Backend -> DB : count_documents({user_id})\n[Vérifier quota max]
+activate DB
+DB --> Backend : count (< 20 ?)
+deactivate DB
+
+alt Quota atteint
+  Backend --> Frontend : 403 Forbidden\n"Limite de 20 cours atteinte"
+else Quota OK
+  Backend -> Backend : Valide fichier\n(extension .pdf, taille ≤ 50 MB)
+
+  Backend -> PDF : extract_pdf(file_bytes)
+  activate PDF
+  note right of PDF : PyMuPDF\nExtraction page par page\nblocs texte structurés
+  PDF --> Backend : page_blocks\n[{page_num, text, ...}]
+  deactivate PDF
+
+  Backend -> Chunker : create_chunks(page_blocks, chunk_size=500, overlap=50)
+  activate Chunker
+  note right of Chunker : Découpage en passages\ncohérents (NLP)\nDétection des chapitres
+  Chunker --> Backend : chunks[]\n[{text, page, chapter}]
+  deactivate Chunker
+
+  alt Aucun chunk extrait
+    Backend --> Frontend : 422 Unprocessable\n"Aucun contenu extractible"
+  else Chunks OK
+    Backend -> DB : insert_one(course_doc)\nstatus = "processing"
+    activate DB
+    DB --> Backend : course_id
+    deactivate DB
+
+    Backend -> DB : insert_many(chunks)
+    activate DB
+    DB --> Backend : OK
+    deactivate DB
+
+    Backend --> Frontend : 200 OK\n{"course_id", "chunks_count", "pages", "status":"processing"}
+
+    note over Backend : Indexation lancée\nen ARRIÈRE-PLAN (asyncio.create_task)
+
+    == Tâche asynchrone d'indexation ==
+
+    Backend -> Embedder : embed_texts(texts[])\n[thread séparé]
+    activate Embedder
+    note right of Embedder : sentence-transformers\nparaphrase-multilingual-MiniLM-L12-v2\n384 dimensions
+    Embedder --> Backend : embeddings[] (float32 matrix)
+    deactivate Embedder
+
+    Backend -> FAISS : create_index(course_id, embeddings)
+    activate FAISS
+    note right of FAISS : Index FAISS FlatIP\nSauvegardé dans\n/data/faiss_indexes/
+    FAISS --> Backend : index.faiss (fichier)
+    deactivate FAISS
+
+    Backend -> DB : update_course_status(course_id, "ready")
+    activate DB
+    DB --> Backend : OK
+    deactivate DB
+
+    == Pré-génération LLM (background, non-bloquant) ==
+
+    Backend -> LLM : pregenerate_summary_in_background(course_id)
+    activate LLM
+    note right of LLM : Groq llama-3.3-70b\nGénère fiches pédagogiques\npar chapitre (cache MongoDB)
+    LLM --> Backend : (résultat ignoré — background)
+    deactivate LLM
+
+    Backend -> LLM : pregenerate_quiz_in_background(course_id)
+    activate LLM
+    note right of LLM : 10 QCM générés\npar le LLM\nmis en cache MongoDB
+    LLM --> Backend : (résultat ignoré — background)
+    deactivate LLM
+  end
+end
+
+deactivate Backend
+
+Frontend -> Frontend : Poll status ou WebSocket\n(cours "processing" → "ready")
+Frontend --> Student : Affiche cours prêt\navec chapitres détectés
+deactivate Frontend
+
+@enduml

@@ -1,0 +1,98 @@
+@startuml EduAI_UseCase_Page1
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam actorStyle awesome
+
+skinparam usecase {
+  BackgroundColor #E8F4FD
+  BorderColor #2E86C1
+  FontSize 11
+  FontName Arial
+}
+skinparam actor {
+  BackgroundColor #D5F5E3
+  BorderColor #1E8449
+  FontSize 12
+  FontName Arial
+}
+skinparam package {
+  BackgroundColor #FEF9E7
+  BorderColor #D4AC0D
+  FontSize 13
+  FontName Arial Bold
+}
+skinparam arrow {
+  Color #2E86C1
+  FontSize 10
+}
+
+title **EduAI — Cas d'Utilisation · Page 1/4**\n**Authentification & Gestion des Cours**
+
+left to right direction
+
+' ── Acteurs ──────────────────────────────────────────────────
+actor "Étudiant" as Student
+actor "MongoDB" as DB #LightYellow
+actor "FAISS\n(Index vectoriel)" as FAISS #LightPink
+
+' ── Paquet 1 : Authentification ──────────────────────────────
+package "1. Authentification" {
+  usecase "S'inscrire\n(Register)" as UC_Register
+  usecase "Se connecter\n(Login)" as UC_Login
+  usecase "Consulter profil\n(GET /auth/me)" as UC_Profile
+  usecase "Générer token JWT\n(HS256 · 7 jours)" as UC_JWT
+  usecase "Hacher mot de passe\n(bcrypt · 72 bytes)" as UC_Bcrypt
+}
+
+' ── Paquet 2 : Gestion des Cours ─────────────────────────────
+package "2. Gestion des Cours" {
+  usecase "Uploader un cours PDF\n(POST /courses/upload)" as UC_Upload
+  usecase "Extraire le texte PDF\n(PyMuPDF)" as UC_Extract
+  usecase "Découper en chunks\n(NLP · 500 tokens · overlap 50)" as UC_Chunk
+  usecase "Générer embeddings\n(MiniLM · 384 dimensions)" as UC_Embed
+  usecase "Indexer dans FAISS\n(FlatIP index)" as UC_Index
+  usecase "Lister ses cours\n(GET /courses/)" as UC_List
+  usecase "Voir détail d'un cours\n(GET /courses/{id})" as UC_Detail
+  usecase "Supprimer un cours\n(DELETE /courses/{id})" as UC_Delete
+}
+
+' ── Relations Étudiant → UCs ─────────────────────────────────
+Student --> UC_Register
+Student --> UC_Login
+Student --> UC_Profile
+Student --> UC_Upload
+Student --> UC_List
+Student --> UC_Detail
+Student --> UC_Delete
+
+' ── Include / Extend ─────────────────────────────────────────
+UC_Register ..> UC_Bcrypt  : <<include>>
+UC_Register ..> UC_JWT     : <<include>>
+UC_Login    ..> UC_Bcrypt  : <<include>>
+UC_Login    ..> UC_JWT     : <<include>>
+
+UC_Upload   ..> UC_Extract : <<include>>
+UC_Extract  ..> UC_Chunk   : <<include>>
+UC_Chunk    ..> UC_Embed   : <<include>>
+UC_Embed    ..> UC_Index   : <<include>>
+
+note right of UC_Upload
+  Quota : max 20 cours / utilisateur
+  Taille : max 50 MB / fichier
+  Pré-génère résumé + quiz
+  en tâche arrière-plan (asyncio)
+end note
+
+' ── Relations systèmes externes ──────────────────────────────
+UC_Register --> DB : insert user
+UC_Login    --> DB : find user + verify pwd
+UC_Profile  --> DB : find user by id
+UC_Upload   --> DB : insert course + chunks
+UC_List     --> DB : find courses by user
+UC_Detail   --> DB : find course by id
+UC_Delete   --> DB : delete course + chunks
+
+UC_Index    --> FAISS : save .faiss index\n(/data/faiss_indexes/)
+UC_Delete   --> FAISS : delete .faiss index
+
+@enduml

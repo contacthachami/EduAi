@@ -1,0 +1,147 @@
+@startuml EduAI_Sequence_S2_Cours
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam sequenceMessageAlign center
+skinparam sequence {
+  ArrowColor        #2E86C1
+  ActorBorderColor  #1E8449
+  ActorBackgroundColor #D5F5E3
+  ParticipantBorderColor  #2E86C1
+  ParticipantBackgroundColor #E8F4FD
+  LifeLineBorderColor #B0C4DE
+  LifeLineBackgroundColor #EBF5FB
+  NoteBackgroundColor #FEF9E7
+  NoteBorderColor   #D4AC0D
+}
+
+title **EduAI — Séquence S2/8 · Gestion des Cours**\n(Upload PDF · Pipeline NLP · Liste · Suppression)
+
+actor      "Étudiant"             as User
+participant "Frontend\n(Next.js)"       as FE
+participant "Backend\n(FastAPI)"        as BE
+participant "PyMuPDF\n(Extracteur)"     as PDF
+participant "Chunker\n(NLP)"            as CHK
+participant "MiniLM\n(Embedder 384-d)"  as EMB
+participant "FAISS\n(IndexFlatIP)"      as FAISS
+database   "MongoDB"                    as DB
+
+autonumber
+
+' ─────────────────────────────────────────────────────────────
+== S2.1 — Upload d'un cours PDF   POST /api/courses/upload ==
+' ─────────────────────────────────────────────────────────────
+
+User -> FE : Sélectionne fichier PDF + saisit nom du cours
+FE   -> BE : POST /api/courses/upload\nmultipart/form-data  [Bearer JWT]
+activate BE
+
+BE -> DB : countDocuments({ user_id })
+activate DB
+DB --> BE : count
+deactivate DB
+
+alt Quota atteint (count ≥ 20)
+  BE --> FE : 403 "Limite de 20 cours atteinte"
+  FE --> User : ⚠ Quota dépassé
+else Quota OK
+  BE -> DB : insertOne({ name, status="processing" })
+  activate DB
+  DB --> BE : course_id (ObjectId)
+  deactivate DB
+
+  BE --> FE : 202 { course_id, status="processing" }
+  deactivate BE
+
+  note over FE : Affiche indicateur "en cours d'indexation"\net lance le polling toutes les 3 s
+  FE --> User : ⏳ Indexation en cours...
+
+  ' ── Tâche de fond (asyncio.create_task) ──────────────────
+  == S2.2 — Pipeline NLP   (tâche de fond asyncio) ==
+
+  activate BE
+  note over BE : Lancé APRÈS la réponse 202\nasyncio background_task
+
+  BE -> PDF  : extract_text(pdf_bytes)
+  activate PDF
+  note right of PDF : PyMuPDF : page par page\nblocs texte structurés
+  PDF --> BE : raw_text[] (pages)
+  deactivate PDF
+
+  BE -> CHK  : chunk_text(text, size=500, overlap=50)
+  activate CHK
+  note right of CHK : Découpage sémantique NLP\ndétection des chapitres\noverlap 50 tokens
+  CHK --> BE : chunks[]
+  deactivate CHK
+
+  BE -> EMB  : encode(chunks[])
+  activate EMB
+  note right of EMB : paraphrase-multilingual-\nMiniLM-L12-v2\n384 dimensions (float32)
+  EMB --> BE : vectors[]
+  deactivate EMB
+
+  BE -> FAISS : create_index(vectors[])
+  activate FAISS
+  note right of FAISS : IndexFlatIP\nsauvegardé sur disque :\n/data/faiss_indexes/{id}.faiss
+  FAISS --> BE : index persisté
+  deactivate FAISS
+
+  BE -> DB : updateOne(course_id,\n{ status="ready", chunks_count })
+  activate DB
+  DB --> BE : ok
+  deactivate DB
+
+  note over BE : Pré-génère résumé + quiz\nen arrière-plan (cache chaud)
+  deactivate BE
+
+  ' ── Polling de statut ─────────────────────────────────────
+  == S2.3 — Polling de statut   GET /api/courses/{id} ==
+
+  loop Toutes les 3 s   tant que status = "processing"
+    FE -> BE : GET /api/courses/{id}  [Bearer JWT]
+    activate BE
+    BE -> DB : findOne(course_id)
+    activate DB
+    DB --> BE : { status, chunks_count, pages }
+    deactivate DB
+    BE --> FE : course document
+    deactivate BE
+  end
+
+  FE --> User : ✓ "Prêt à étudier" (status = ready)
+end
+
+' ─────────────────────────────────────────────────────────────
+== S2.4 — Lister les cours   GET /api/courses/ ==
+' ─────────────────────────────────────────────────────────────
+
+User -> FE : Navigue vers /courses
+FE   -> BE : GET /api/courses/  [Bearer JWT]
+activate BE
+BE -> DB : find({ user_id })
+activate DB
+DB --> BE : courses[]
+deactivate DB
+BE --> FE : 200 courses[]
+deactivate BE
+FE --> User : Affiche liste des cours
+
+' ─────────────────────────────────────────────────────────────
+== S2.5 — Supprimer un cours   DELETE /api/courses/{id} ==
+' ─────────────────────────────────────────────────────────────
+
+User -> FE   : Clique icône "Supprimer" (confirme)
+FE   -> BE   : DELETE /api/courses/{id}  [Bearer JWT]
+activate BE
+BE -> DB     : deleteOne({ _id: course_id, user_id })
+activate DB
+DB --> BE    : ok
+deactivate DB
+BE -> FAISS  : delete_index(course_id)
+activate FAISS
+FAISS --> BE : fichier .faiss supprimé
+deactivate FAISS
+BE --> FE    : 200 { status: "deleted" }
+deactivate BE
+FE --> User  : Cours retiré de la liste
+
+@enduml

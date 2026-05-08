@@ -1,0 +1,120 @@
+@startuml EduAI_Sequence_S6_Flashcards
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam sequenceMessageAlign center
+skinparam sequence {
+  ArrowColor        #2E86C1
+  ActorBorderColor  #1E8449
+  ActorBackgroundColor #D5F5E3
+  ParticipantBorderColor  #2E86C1
+  ParticipantBackgroundColor #E8F4FD
+  LifeLineBorderColor #B0C4DE
+  LifeLineBackgroundColor #EBF5FB
+  NoteBackgroundColor #FEF9E7
+  NoteBorderColor   #D4AC0D
+}
+
+title **EduAI — Séquence S6/8 · Flashcards (SM-2)**\n(Génération · Consultation du deck · Révision SM-2 · Export PDF)
+
+actor      "Étudiant"                as User
+participant "Frontend\n(Flashcards)"      as FE
+participant "Backend\n(FastAPI / flash)"  as BE
+participant "Groq LLM\n(llama-3.3-70b)"  as LLM
+database   "MongoDB\n(flashcards)"        as DB
+
+autonumber
+
+' ─────────────────────────────────────────────────────────────
+== S6.1 — Génération des flashcards   POST /api/flashcards/generate ==
+' ─────────────────────────────────────────────────────────────
+
+User -> FE  : Clique "Générer les flashcards"
+FE   -> BE  : POST /api/flashcards/generate\n{ course_id, count=15 }  [Bearer JWT]
+activate BE
+
+BE -> DB    : find_chunks({ course_id })
+activate DB
+DB --> BE   : chunks[]
+deactivate DB
+
+BE -> LLM   : generate_flashcards(chunks, count=15)
+activate LLM
+note right of LLM : Format JSON :\n[{ front (question),\n   back (réponse détaillée),\n   difficulty (1–5) }]
+LLM --> BE  : flashcards[] (JSON)
+deactivate LLM
+
+BE -> BE    : init SM-2 params\n(interval=1, ease=2.5,\nrepetitions=0, next_review=today)
+
+BE -> DB    : insertMany(flashcards +\nSM2 params + { user_id, course_id })
+activate DB
+DB --> BE   : inserted_ids[]
+deactivate DB
+
+BE --> FE   : 200 { flashcards[], count }
+deactivate BE
+FE --> User : Jeu de flashcards affiché
+
+' ─────────────────────────────────────────────────────────────
+== S6.2 — Charger le jeu de cartes   GET /api/flashcards/deck/{id} ==
+' ─────────────────────────────────────────────────────────────
+
+User -> FE  : Ouvre la page /flashcards (ou recharge)
+FE   -> BE  : GET /api/flashcards/deck/{course_id}  [Bearer JWT]
+activate BE
+BE -> DB    : find({ course_id, user_id })
+activate DB
+DB --> BE   : flashcards[]  (avec params SM-2)
+deactivate DB
+BE --> FE   : 200 flashcards[]
+deactivate BE
+FE --> User : Toutes les cartes affichées\n(recto/verso, progress SM-2 visible)
+
+' ─────────────────────────────────────────────────────────────
+== S6.3 — Réviser une carte (SM-2)   POST /api/flashcards/review ==
+' ─────────────────────────────────────────────────────────────
+
+User -> FE  : Retourne la carte → note la qualité (1–5)
+FE   -> BE  : POST /api/flashcards/review\n{ flashcard_id, quality }  [Bearer JWT]
+activate BE
+
+BE -> DB    : findOne({ _id: flashcard_id })
+activate DB
+DB --> BE   : { interval, ease_factor, repetitions }
+deactivate DB
+
+BE -> BE    : Algorithme SM-2 :\nif quality < 3:\n  repetitions = 0\n  interval = 1\nelse:\n  interval *= ease_factor\n  ease_factor += 0.1 * (quality – 2.5)\nease_factor = max(1.3, ease_factor)\nnext_review = today + interval jours
+
+BE -> DB    : updateOne({ flashcard_id },\n{ interval, ease_factor,\n  repetitions, next_review })
+activate DB
+DB --> BE   : ok
+deactivate DB
+
+BE --> FE   : 200 { interval, ease_factor,\nnext_review, repetitions }
+deactivate BE
+
+FE --> User : "Prochaine révision : dans N jour(s)"
+
+note right of FE : SM-2 — Super-Memo algorithm :\nEase factor initial : 2.5\nEase factor min     : 1.3\nInterval max        : croissance exponentielle
+
+' ─────────────────────────────────────────────────────────────
+== S6.4 — Exporter les flashcards en PDF   GET /api/export/flashcards/{id} ==
+' ─────────────────────────────────────────────────────────────
+
+User -> FE  : Clique bouton Download\n(coin supérieur droit)
+FE   -> BE  : GET /api/export/flashcards/{course_id}  [Bearer JWT]
+activate BE
+
+BE -> DB    : find({ course_id, user_id })
+activate DB
+DB --> BE   : flashcards[]
+deactivate DB
+
+BE -> BE    : generate_pdf(flashcards)\n(recto → question · verso → réponse)
+
+BE --> FE   : 200 application/pdf\nContent-Disposition: attachment;\nfilename="flashcards_{id}.pdf"
+deactivate BE
+
+FE -> FE    : URL.createObjectURL(blob)\n→ <a download>.click()
+FE --> User : Fichier PDF téléchargé
+
+@enduml

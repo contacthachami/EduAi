@@ -1,0 +1,131 @@
+@startuml EduAI_Sequence_QA
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam sequence {
+  ArrowColor #2E86C1
+  ActorBorderColor #1E8449
+  LifeLineBorderColor #2E86C1
+  LifeLineBackgroundColor #EBF5FB
+  ParticipantBorderColor #2E86C1
+  ParticipantBackgroundColor #EBF5FB
+  ParticipantFontSize 12
+  ParticipantFontName Arial
+  NoteBackgroundColor #FEF9E7
+  NoteBorderColor #D4AC0D
+}
+skinparam actor {
+  BorderColor #1E8449
+  BackgroundColor #D5F5E3
+}
+
+title **EduAI — Séquence 3 : Session Questions-Réponses (Pipeline RAG)**
+
+actor "Étudiant" as Student
+participant "Next.js\nFrontend\n(ChatInterface)" as Frontend
+participant "FastAPI\nBackend\n(qa router)" as Backend
+participant "Embedder\n(MiniLM BERT)" as Embedder
+participant "FAISS\nRetriever" as FAISS
+database "MongoDB\n(chunks + history)" as DB
+participant "Groq LLM\n(llama-3.3-70b)" as LLM
+participant "CamemBERT\n(fallback extractif)" as Camembert
+
+== Initialisation de la session Q&A ==
+
+Student -> Frontend : Ouvre l'espace Q&A\nd'un cours
+Frontend -> DB : GET /api/qa/history/{session_id}
+activate DB
+DB --> Frontend : Historique des échanges précédents
+deactivate DB
+
+== Poser une question ==
+
+Student -> Frontend : Tape et envoie\nune question
+activate Frontend
+
+Frontend -> Backend : POST /api/qa/ask\n{"course_id","question","session_id"}\n[Authorization: Bearer JWT]
+activate Backend
+
+Backend -> Backend : Valide JWT\n(get_current_user)
+Backend -> DB : get_course_by_id(course_id, user_id)
+activate DB
+DB --> Backend : course_doc
+deactivate DB
+
+alt Cours introuvable
+  Backend --> Frontend : 404 Not Found
+else Cours trouvé
+  Backend -> DB : get_chunks_by_course(course_id)
+  activate DB
+  DB --> Backend : chunks[] (textes)
+  deactivate DB
+
+  == Étape 1 : Encodage de la question ==
+
+  Backend -> Embedder : embed_query(question)\n[asyncio.to_thread — non bloquant]
+  activate Embedder
+  note right of Embedder : Transforme la question\nen vecteur 384-d\n(même espace que les chunks)
+  Embedder --> Backend : query_vector (float32[384])
+  deactivate Embedder
+
+  == Étape 2 : Recherche sémantique FAISS ==
+
+  Backend -> FAISS : search(course_id, query_vector, k=top_k)
+  activate FAISS
+  note right of FAISS : Produit scalaire\nen haute dimension\n(FlatIP index)
+  FAISS --> Backend : [{index, score}] top-k résultats
+  deactivate FAISS
+
+  Backend -> Backend : Mappe indices → chunks\nFiltrage seuil ≥ 0.30
+
+  == Étape 3 : Chargement historique de conversation ==
+
+  Backend -> DB : get_qa_history(session_id)\n[3 derniers tours]
+  activate DB
+  DB --> Backend : [{role, content}] historique
+  deactivate DB
+
+  == Étape 4 : Génération de la réponse ==
+
+  alt LLM disponible (Groq)
+    Backend -> LLM : answer_with_llm(\n  question,\n  context_chunks,\n  course_title,\n  history\n)
+    activate LLM
+    note right of LLM : Prompt système:\n- Rôle tuteur EduAI\n- Extraits pertinents du cours\n- Historique conversation\n- Gestion hors-sujet / salutations
+    LLM --> Backend : {answer: str, sources: []}
+    deactivate LLM
+    Backend -> Backend : llm_used = True
+  else LLM indisponible (fallback)
+    Backend -> Camembert : answer_question(\n  question,\n  context_chunks\n)
+    activate Camembert
+    note right of Camembert : CamemBERT\n(camembert-base-squadFR)\nSpan extraction\nfrançais
+    Camembert --> Backend : {answer: str, confidence: float}
+    deactivate Camembert
+    Backend -> Backend : llm_used = False
+  end
+
+  == Étape 5 : Sauvegarde & réponse ==
+
+  Backend -> DB : save_qa_exchange(\n  session_id,\n  question,\n  answer,\n  sources\n)
+  activate DB
+  DB --> Backend : OK
+  deactivate DB
+
+  Backend --> Frontend : 200 OK\n{\n  "answer": "...",\n  "confidence": 0.92,\n  "sources": [{chunk, page, score}],\n  "session_id": "...",\n  "llm_used": true\n}
+end
+
+deactivate Backend
+
+Frontend -> Frontend : Affiche réponse\n+ sources documentaires\n+ badge "LLM" ou "Extractif"
+Frontend --> Student : Réponse avec références\nde pages
+deactivate Frontend
+
+|||
+== Streaming (mode temps réel) ==
+
+note over Student, LLM
+  Alternative : POST /api/qa/ask/stream
+  Le backend stream la réponse LLM token par token
+  via Server-Sent Events (SSE) — StreamingResponse
+  → Affichage progressif dans l'interface chat
+end note
+
+@enduml

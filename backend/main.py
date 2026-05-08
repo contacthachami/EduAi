@@ -6,9 +6,9 @@ enregistre les routers.
 
 import os
 import traceback
-
 import logging
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -104,6 +104,39 @@ async def lifespan(app: FastAPI):
 
     asyncio.create_task(_warm_existing_summaries())
 
+    # ── Seed du compte admin par défaut ───────────────────────
+    try:
+        from backend.database.mongodb import get_db as _get_db
+        from backend.services.auth import hash_password as _hp
+        _db = _get_db()
+        _admin_email = "admin@gmail.com"
+        _existing = await _db.users.find_one({"email": _admin_email})
+        if not _existing:
+            await _db.users.insert_one({
+                "name": "Admin EduAI",
+                "email": _admin_email,
+                "password_hash": _hp("eduai@2026"),
+                "role": "admin",
+                "plan": "pro",
+                "created_at": datetime.now(timezone.utc),
+                "settings": {"daily_goal_minutes": 0, "reminder_enabled": False},
+            })
+            logger.info("Compte admin créé : %s", _admin_email)
+        elif _existing.get("role") != "admin":
+            await _db.users.update_one(
+                {"email": _admin_email},
+                {"$set": {"role": "admin", "plan": "pro"}},
+            )
+            logger.info("Compte admin promu : %s", _admin_email)
+        # Supprimer l'ancien compte admin si différent
+        _old_email = "eduai@gmail.com"
+        _old = await _db.users.find_one({"email": _old_email, "role": "admin"})
+        if _old:
+            await _db.users.update_one({"email": _old_email}, {"$set": {"role": "user"}})
+            logger.info("Ancien compte admin rétrogradé : %s", _old_email)
+    except Exception:
+        logger.exception("Erreur lors de la création du compte admin.")
+
     yield
 
     # Nettoyage
@@ -150,14 +183,15 @@ async def log_errors(request: Request, call_next):
 
 # Enregistrer les routers
 from backend.routers import courses, qa, summary, quiz  # noqa: E402
-from backend.routers import auth, analytics, flashcards, mindmap, exam, export  # noqa: E402
+from backend.routers import auth, flashcards, mindmap, exam, export  # noqa: E402
+from backend.routers import admin  # noqa: E402
 
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentification"])
+app.include_router(admin.router, prefix="/api/admin", tags=["Administration"])
 app.include_router(courses.router, prefix="/api/courses", tags=["Cours"])
 app.include_router(qa.router, prefix="/api/qa", tags=["Questions-Réponses"])
 app.include_router(summary.router, prefix="/api/summary", tags=["Résumés"])
 app.include_router(quiz.router, prefix="/api/quiz", tags=["Quiz"])
-app.include_router(analytics.router, prefix="/api/analytics", tags=["Analytics"])
 app.include_router(flashcards.router, prefix="/api/flashcards", tags=["Flashcards"])
 app.include_router(mindmap.router, prefix="/api/mindmap", tags=["Mind Map"])
 app.include_router(exam.router, prefix="/api/exam", tags=["Examens"])

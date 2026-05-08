@@ -65,15 +65,22 @@ async def upload_course(
     settings = get_settings()
     user_id = current_user["user_id"]
 
-    # Vérifier quota
+    # ── Vérifier quota selon le plan de l'utilisateur ──────────────────────
     from backend.database.mongodb import get_db
+    from bson import ObjectId
     db = get_db()
-    user_courses_count = await db.courses.count_documents({"user_id": user_id})
-    if user_courses_count >= settings.max_courses_per_user:
-        raise HTTPException(
-            status_code=403,
-            detail=f"Limite atteinte ({settings.max_courses_per_user} cours max).",
-        )
+    user_doc = await db.users.find_one({"_id": ObjectId(user_id)})
+    user_plan = user_doc.get("plan", "free") if user_doc else "free"
+
+    if user_plan != "pro":
+        # Plan gratuit : maximum 3 cours à vie
+        FREE_PLAN_LIMIT = 3
+        user_courses_count = await db.courses.count_documents({"user_id": user_id})
+        if user_courses_count >= FREE_PLAN_LIMIT:
+            raise HTTPException(
+                status_code=403,
+                detail="UPGRADE_REQUIRED",
+            )
 
     # Validation du fichier
     if not file.filename or not file.filename.lower().endswith(".pdf"):

@@ -144,7 +144,7 @@ export default function LandingPage() {
       {/* Features */}
       <section className="max-w-6xl mx-auto px-6 py-16">
         <h2 className="font-serif text-2xl font-bold text-[#171412] text-center mb-10">
-          Tout ce qu'il faut pour réussir
+          Tout ce qu&apos;il faut pour réussir
         </h2>
         <div className="grid md:grid-cols-3 gap-6">
           {features.map((f, i) => (
@@ -209,7 +209,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="border-t border-[#DED8D1] py-6 text-center text-xs text-[#8D837A]">
-        © 2026 EduAI — Plateforme d'apprentissage intelligent
+        © 2026 EduAI — Plateforme d&apos;apprentissage intelligent
       </footer>
     </div>
   );

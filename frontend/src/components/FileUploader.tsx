@@ -8,6 +8,8 @@ import {
   CheckCircle2,
   FileText,
   Loader2,
+  Lock,
+  Mail,
   UploadCloud,
   X,
 } from "lucide-react";
@@ -26,7 +28,10 @@ function formatFileSize(bytes: number) {
 }
 
 function courseNameFromFile(file: File) {
-  return file.name.replace(/\.pdf$/i, "").replace(/[_-]+/g, " ").trim();
+  return file.name
+    .replace(/\.pdf$/i, "")
+    .replace(/[_-]+/g, " ")
+    .trim();
 }
 
 export default function FileUploader({
@@ -65,7 +70,9 @@ export default function FileUploader({
       } else if (code === "file-invalid-type") {
         setError("Le fichier sélectionné doit être un PDF.");
       } else {
-        setError("Impossible de sélectionner ce fichier. Vérifiez le format PDF.");
+        setError(
+          "Impossible de sélectionner ce fichier. Vérifiez le format PDF.",
+        );
       }
     },
     accept: { "application/pdf": [".pdf"] },
@@ -91,7 +98,8 @@ export default function FileUploader({
       setProgress("Cours ajouté. Ouverture de l'espace de travail...");
       onUploadComplete?.(result.course_id);
     } catch (err: unknown) {
-      let message = "Le cours n'a pas pu être ajouté. Réessayez dans un instant.";
+      let message =
+        "Le cours n'a pas pu être ajouté. Réessayez dans un instant.";
       if (err && typeof err === "object" && "response" in err) {
         const response = (err as { response?: { data?: { detail?: string } } })
           .response;
@@ -99,7 +107,7 @@ export default function FileUploader({
       } else if (err instanceof Error) {
         message = err.message;
       }
-      setError(message);
+      setError(message === "UPGRADE_REQUIRED" ? "UPGRADE_REQUIRED" : message);
       setProgress(null);
     } finally {
       setUploading(false);
@@ -153,7 +161,10 @@ export default function FileUploader({
                 <FileText size={18} strokeWidth={1.8} />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-ink-primary" title={file.name}>
+                <p
+                  className="truncate text-sm font-semibold text-ink-primary"
+                  title={file.name}
+                >
                   {file.name}
                 </p>
                 <p className="caption">{formatFileSize(file.size)}</p>
@@ -193,16 +204,46 @@ export default function FileUploader({
         </motion.div>
       )}
 
-      {error && (
-        <div
-          id={errorId}
-          role="alert"
-          className="status-message status-message-error flex items-start gap-2"
-        >
-          <AlertCircle size={16} strokeWidth={1.8} className="mt-0.5 shrink-0" />
-          <span>{error}</span>
-        </div>
-      )}
+      {error &&
+        (error === "UPGRADE_REQUIRED" ? (
+          <div
+            id={errorId}
+            role="alert"
+            className="rounded-lg border border-[#F0D9CE] bg-[#FDF3EE] p-4 flex flex-col gap-3"
+          >
+            <div className="flex items-center gap-2">
+              <Lock size={16} className="text-[#B85B2A] shrink-0" />
+              <span className="text-sm font-semibold text-[#171412]">
+                Limite du plan gratuit atteinte
+              </span>
+            </div>
+            <p className="text-sm text-[#5F5750] leading-relaxed">
+              Vous avez utilisé vos <strong>3 uploads</strong> disponibles avec
+              le plan Free. Passez au plan <strong>Pro</strong> pour un accès
+              illimité.
+            </p>
+            <a
+              href="mailto:support@eduai.app?subject=Passage%20au%20plan%20Pro"
+              className="inline-flex items-center gap-2 self-start px-4 py-2 rounded-md bg-[#B85B2A] text-white text-xs font-semibold hover:bg-[#9A4B22] transition-colors"
+            >
+              <Mail size={13} />
+              Contacter le support
+            </a>
+          </div>
+        ) : (
+          <div
+            id={errorId}
+            role="alert"
+            className="status-message status-message-error flex items-start gap-2"
+          >
+            <AlertCircle
+              size={16}
+              strokeWidth={1.8}
+              className="mt-0.5 shrink-0"
+            />
+            <span>{error}</span>
+          </div>
+        ))}
 
       {progress && (
         <div
@@ -237,7 +278,9 @@ export default function FileUploader({
           disabled={uploading || !courseName.trim()}
           className="btn-primary w-full"
         >
-          {uploading && <Loader2 size={17} strokeWidth={1.8} className="animate-spin" />}
+          {uploading && (
+            <Loader2 size={17} strokeWidth={1.8} className="animate-spin" />
+          )}
           {uploading ? "Indexation en cours" : submitLabel}
         </motion.button>
       )}

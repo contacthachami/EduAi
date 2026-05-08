@@ -17,6 +17,7 @@ interface User {
   name: string;
   email: string;
   plan: string;
+  role: string;
 }
 
 interface AuthState {

@@ -1,0 +1,127 @@
+@startuml EduAI_Sequence_S5_Quiz
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam sequenceMessageAlign center
+skinparam sequence {
+  ArrowColor        #2E86C1
+  ActorBorderColor  #1E8449
+  ActorBackgroundColor #D5F5E3
+  ParticipantBorderColor  #2E86C1
+  ParticipantBackgroundColor #E8F4FD
+  LifeLineBorderColor #B0C4DE
+  LifeLineBackgroundColor #EBF5FB
+  NoteBackgroundColor #FEF9E7
+  NoteBorderColor   #D4AC0D
+}
+
+title **EduAI — Séquence S5/8 · Quiz Interactif**\n(Génération LLM · Cache · Soumission · Régénération)
+
+actor      "Étudiant"              as User
+participant "Frontend\n(QuizPage)"       as FE
+participant "Backend\n(FastAPI / quiz)"  as BE
+participant "Groq LLM\n(llama-3.3-70b)" as LLM
+database   "MongoDB"                    as DB
+
+autonumber
+
+' ─────────────────────────────────────────────────────────────
+== S5.1 — Génération du quiz — cache MISS   GET /api/quiz/{id} ==
+' ─────────────────────────────────────────────────────────────
+
+User -> FE  : Clique onglet "Quiz"
+FE   -> BE  : GET /api/quiz/{course_id}  [Bearer JWT]
+activate BE
+
+BE -> DB    : get_cached_quiz(course_id)
+activate DB
+DB --> BE   : null  (pas de cache)
+deactivate DB
+
+BE -> DB    : find_chunks({ course_id })
+activate DB
+DB --> BE   : chunks[]
+deactivate DB
+
+BE -> LLM   : generate_quiz_llm(chunks,\nnum_questions=10)
+activate LLM
+note right of LLM : Politique qualité : LLM-only\n(pas de fallback extractif)\nFormat JSON :\n[{ question, options[4],\n  correct_index, explanation }]
+LLM --> BE  : questions[] (JSON validé)
+deactivate LLM
+
+BE -> DB    : cache_quiz(course_id, questions)
+activate DB
+DB --> BE   : quiz_id
+deactivate DB
+
+BE --> FE   : 200 { quiz_id, questions[] }
+deactivate BE
+
+FE --> User : Affiche QCM interactif
+
+' ─────────────────────────────────────────────────────────────
+== S5.2 — Génération du quiz — cache HIT   GET /api/quiz/{id} ==
+' ─────────────────────────────────────────────────────────────
+
+note over User : L'étudiant revient sur l'onglet\nou recharge la page
+
+User -> FE  : Onglet "Quiz" (re-visite)
+FE   -> BE  : GET /api/quiz/{course_id}  [Bearer JWT]
+activate BE
+BE -> DB    : get_cached_quiz(course_id)
+activate DB
+DB --> BE   : questions[] (depuis cache)
+deactivate DB
+note right of BE : Pas d'appel LLM\n(réponse instantanée)
+BE --> FE   : 200 { quiz_id, questions[] }
+deactivate BE
+FE --> User : Quiz affiché instantanément
+
+' ─────────────────────────────────────────────────────────────
+== S5.3 — Régénérer le quiz   GET /api/quiz/{id}?regenerate=true ==
+' ─────────────────────────────────────────────────────────────
+
+User -> FE  : Clique "Régénérer"
+FE   -> BE  : GET /api/quiz/{course_id}?regenerate=true  [Bearer JWT]
+activate BE
+note right of BE : regenerate=true → ignore le cache\nforce un nouvel appel LLM
+
+BE -> DB    : find_chunks({ course_id })
+activate DB
+DB --> BE   : chunks[]
+deactivate DB
+
+BE -> LLM   : generate_quiz_llm(chunks, num_questions=10)
+activate LLM
+LLM --> BE  : questions[] (nouveau lot)
+deactivate LLM
+
+BE -> DB    : update_cached_quiz(course_id, questions)
+activate DB
+DB --> BE   : quiz_id (updated)
+deactivate DB
+
+BE --> FE   : 200 { quiz_id, questions[] }
+deactivate BE
+FE --> User : Nouveau quiz affiché
+
+' ─────────────────────────────────────────────────────────────
+== S5.4 — Soumettre les réponses   POST /api/quiz/submit ==
+' ─────────────────────────────────────────────────────────────
+
+User -> FE  : Sélectionne réponses → clique "Terminer"
+FE   -> BE  : POST /api/quiz/submit\n{ quiz_id, answers: [int] }
+activate BE
+
+BE -> DB    : get_quiz(quiz_id)
+activate DB
+DB --> BE   : { questions[], correct_indexes[] }
+deactivate DB
+
+BE -> BE    : compare(answers, correct_indexes)\n→ per_question_result[]\n→ score = correct/total
+
+BE --> FE   : 200 {\n  score, total, percentage,\n  results: [{ correct, explanation }]\n}
+deactivate BE
+
+FE --> User : Affiche score + corrections\n+ explications par question
+
+@enduml

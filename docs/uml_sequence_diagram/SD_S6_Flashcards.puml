@@ -1,0 +1,60 @@
+﻿@startuml SD_S6_Flashcards
+!theme plain
+title SD_S6 – Flashcards (SM-2)
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+
+actor Utilisateur as U
+participant "Frontend\n(FlashcardsPage)" as FE
+participant "FastAPI\n/api/flashcards" as API
+participant "MongoDB\ndb.courses/chunks/flashcards/flashcard_reviews" as DB
+participant "LLM Flashcards\n(Groq/Ollama)" as LLM
+
+== Consulter le deck ==
+U -> FE : /course/{id}/flashcards
+FE -> API : GET /api/flashcards/deck/{courseId}
+API -> DB : courses.findOne({_id: course_id, user_id})
+API -> DB : flashcards.find({course_id, user_id}) → cards[]
+API -> API : due_today = cards où next_review <= now
+API --> FE : 200 FlashcardDeckResponse{course_id, course_name, total, due_today, cards[]}
+
+== Générer des flashcards ==
+U -> FE : POST generate {count}
+FE -> API : POST /api/flashcards/generate {course_id, count}
+API -> DB : courses.findOne({_id: course_id, user_id})
+API -> DB : chunks.find({course_id}) → chunks[]
+API -> LLM : generate_flashcards_from_chunks(chunks, count)
+alt LLM disponible
+    LLM --> API : [{front, back, difficulty}]
+else
+    LLM -> LLM : _fallback_flashcards(chunks, count)
+    LLM --> API : [{front, back, difficulty}]
+end
+API -> DB : flashcards.insertMany([{course_id, user_id, front, back,\ninterval=1, repetitions=0, ease_factor=2.5, next_review=now}])
+API --> FE : 200 FlashcardDeckResponse{course_id, course_name, total, due_today, cards[]}
+
+== Session de révision (SM-2) ==
+U -> FE : Clic "Réviser"
+FE -> API : GET /api/flashcards/review/{courseId}
+API -> DB : flashcards.find({course_id, user_id, next_review<=now})\n.to_list(50) → due_cards[]
+API --> FE : 200 ReviewSessionResponse{cards_due[], total_due}
+
+loop Chaque carte due
+    FE -> FE : Affiche carte (recto) → user retourne → affiche verso
+    U -> FE : Retourne carte + note qualité (0–5)
+    FE -> API : POST /api/flashcards/review {flashcard_id, quality}
+    API -> DB : flashcards.findOne({_id: flashcard_id, user_id})
+    API -> API : SM-2 : _sm2(quality, repetitions, ease_factor, interval)\n  quality<3 → interval=1, reps=0, ef=max(1.3, ef-0.2)\n  sinon → reps++, interval=round(interval*ef), ef ajusté
+    API -> DB : flashcards.updateOne({_id}, {interval, repetitions, ease_factor, next_review})
+    API -> DB : flashcard_reviews.insertOne({flashcard_id, user_id, course_id, quality, reviewed_at})
+    API --> FE : 200 {ok:true, next_review, interval_days, ease_factor}
+    FE -> FE : Affiche prochaine carte ou "Session terminée"
+end
+
+== Supprimer le deck ==
+U -> FE : Supprimer deck
+FE -> API : DELETE /api/flashcards/deck/{courseId}
+API -> DB : flashcards.deleteMany({user_id, course_id})
+API --> FE : 200 {deleted: n}
+
+@enduml

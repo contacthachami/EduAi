@@ -1,0 +1,580 @@
+% ═══════════════════════════════════════════════════════════════════════════════
+%  RAPPORT DE PROJET DE FIN D'ÉTUDES
+%  EduAI — Assistant Pédagogique Intelligent (SaaS)
+%  EL Mehdi HACHAMI · Bachelor Ingénierie Informatique en IA & Sciences des Données
+%  École Supérieure de Technologie — Essaouira · Université Cadi Ayyad
+%  Année universitaire 2025/2026
+% ═══════════════════════════════════════════════════════════════════════════════
+\documentclass[12pt, a4paper, oneside]{report}
+
+% ── Encodage et langue ─────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{lmodern}
+\usepackage[final]{microtype}
+
+% ── Mise en page ───────────────────────────────────────────────────────────
+\usepackage[top=2.5cm, bottom=2.5cm, left=3cm, right=2.5cm, headheight=14.2pt]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+\usepackage{fancyhdr}
+\usepackage{truncate}
+\usepackage{titlesec}
+\usepackage{titletoc}
+
+% ── Graphiques et couleurs ─────────────────────────────────────────────────
+\usepackage{graphicx}
+\usepackage[table,xcdraw]{xcolor}
+\usepackage{float}
+\usepackage{subcaption}
+
+% ── Tableaux ───────────────────────────────────────────────────────────────
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{tabularx}
+
+% ── Listes et énumérations ────────────────────────────────────────────────
+\usepackage{enumitem}
+
+% ── Liens et références ───────────────────────────────────────────────────
+\usepackage[hidelinks, colorlinks=true, linkcolor=black, citecolor=blue, urlcolor=blue]{hyperref}
+\usepackage{url}
+
+% ── Code source ────────────────────────────────────────────────────────────
+\usepackage{listings}
+\usepackage{minted}
+
+% ── Divers ─────────────────────────────────────────────────────────────────
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{pdfpages}
+\usepackage{appendix}
+
+% ── Typographie (justification sans coupure en fin de ligne) ────────────────
+\tolerance=1000
+\setlength{\emergencystretch}{3em}
+\hyphenpenalty=10000
+\exhyphenpenalty=10000
+
+% ── Couleurs personnalisées ────────────────────────────────────────────────
+\definecolor{eduai-primary}{HTML}{2563EB}
+\definecolor{eduai-dark}{HTML}{1E293B}
+\definecolor{este-brown}{HTML}{8B1A1A}
+\definecolor{gray-light}{HTML}{F8FAFC}
+\definecolor{table-row-alt}{HTML}{EFF6FF}
+
+% ── Design professionnel des tableaux ─────────────────────────────────────
+\setlength{\extrarowheight}{3pt}
+\renewcommand{\arraystretch}{1.35}
+\arrayrulecolor{eduai-primary}
+% Entête de colonne : fond bleu + texte blanc gras
+\newcommand{\thead}[1]{\textcolor{white}{\textbf{#1}}}
+
+% ── En-têtes et pieds de page ──────────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\truncate{0.58\textwidth}{\leftmark}}
+\fancyhead[R]{\small EduAI — Rapport PFE}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.2pt}
+
+% ── Style des chapitres ────────────────────────────────────────────────────
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries\color{eduai-dark}}
+  {\chaptertitlename\ \thechapter}{20pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{-20pt}{30pt}
+
+% ── Listings config ────────────────────────────────────────────────────────
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  backgroundcolor=\color{gray-light},
+  keywordstyle=\color{eduai-primary}\bfseries,
+  commentstyle=\color{gray},
+  stringstyle=\color{green!50!black},
+}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\begin{document}
+
+% ── PAGE DE GARDE ──────────────────────────────────────────────────────────
+\begin{titlepage}
+\begin{center}
+
+% Logo ESTE
+\includegraphics[width=10cm, trim=112 90 140 75, clip]{figures/logo_este.png}
+
+\vspace{0.5cm}
+{\large \textbf{Université Cadi Ayyad}}\\[0.2cm]
+{\large École Supérieure de Technologie — Essaouira}\\[0.3cm]
+{\normalsize Filière : Bachelor en Ingénierie Informatique en Intelligence Artificielle et Sciences des Données}
+
+\vspace{1.2cm}
+\rule{\textwidth}{1.5pt}\\[0.4cm]
+{\fontsize{22}{26}\selectfont \textbf{Rapport de Projet de Fin d'Études}}\\[0.3cm]
+\rule{\textwidth}{1.5pt}
+
+\vspace{0.8cm}
+{\fontsize{18}{22}\selectfont \textcolor{eduai-primary}{\textbf{EduAI — Assistant Pédagogique Intelligent}}}\\[0.3cm]
+{\large Plateforme SaaS d'apprentissage augmenté par l'Intelligence Artificielle}
+
+\vspace{1.5cm}
+
+\begin{minipage}[t]{0.45\textwidth}
+\textbf{Réalisé par :}\\[0.2cm]
+EL Mehdi HACHAMI
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.45\textwidth}
+\textbf{Encadré par :}\\[0.2cm]
+Pr. El Mahdi ERRAJI
+\end{minipage}
+
+\vspace{1cm}
+
+\begin{minipage}[t]{0.45\textwidth}
+\textbf{Entreprise :}\\[0.2cm]
+2Pi eLearning SARL
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.45\textwidth}
+\textbf{Poste :}\\[0.2cm]
+Développeur Full-stack et Responsable des Opérations
+\end{minipage}
+
+\vfill
+{\large \textbf{Année universitaire : 2025 / 2026}}
+
+\end{center}
+\end{titlepage}
+
+% ── PAGES LIMINAIRES ──────────────────────────────────────────────────────
+\hypersetup{pageanchor=false}
+\pagenumbering{roman}
+
+% Dédicace
+\chapter*{Dédicace}
+\addcontentsline{toc}{chapter}{Dédicace}
+\vspace{2cm}
+\begin{center}
+\textit{À mes chers parents,\\
+À ma famille,\\
+À tous ceux qui m'ont soutenu tout au long de ce parcours.}
+\end{center}
+\newpage
+
+% Remerciements
+\chapter*{Remerciements}
+\addcontentsline{toc}{chapter}{Remerciements}
+
+Je souhaite remercier toutes les personnes qui m'ont aidé durant ce projet de fin d'études.
+
+Tout d'abord, je remercie mon encadrant, \textbf{Professeur El Mahdi ERRAJI}, pour ses conseils, son suivi et ses orientations tout au long de ce travail.
+
+Je remercie aussi l'entreprise \textbf{2Pi eLearning SARL}, où je travaille comme Développeur Full-stack et Responsable des Opérations, pour avoir mis à ma disposition l'infrastructure nécessaire au déploiement de la plateforme.
+
+Je tiens également à remercier les enseignants de la filière \textbf{Bachelor en Ingénierie Informatique en Intelligence Artificielle et Sciences des Données} à l'\textbf{École Supérieure de Technologie d'Essaouira} pour la formation de qualité que j'ai reçue.
+
+Enfin, merci aux membres du jury d'avoir accepté d'évaluer ce travail.
+
+\newpage
+
+% Résumé
+\chapter*{Résumé}
+\addcontentsline{toc}{chapter}{Résumé}
+
+Le présent rapport décrit la conception et la réalisation d'\textbf{EduAI}, une plateforme SaaS (\textit{Software as a Service}) d'assistance pédagogique basée sur l'Intelligence Artificielle. Ce projet, réalisé de manière entièrement individuelle sous l'encadrement de \textbf{Pr. El Mahdi ERRAJI}, vise à répondre à une problématique concrète rencontrée par de nombreux étudiants de l'enseignement supérieur marocain : la difficulté à assimiler efficacement les cours volumineux distribués sous format PDF. L'entreprise \textbf{2Pi eLearning SARL}, au sein de laquelle l'auteur exerce comme Développeur Full-stack et Responsable des Opérations, a mis à disposition l'infrastructure de déploiement (Portainer).
+
+La plateforme EduAI propose six outils d'apprentissage complémentaires : un module de résumé pédagogique automatique par chapitre, un système de questions-réponses conversationnel fondé sur l'approche RAG (\textit{Retrieval-Augmented Generation}), un générateur de quiz adaptatifs, des flashcards intégrant l'algorithme de répétition espacée SM-2, des cartes mentales interactives, ainsi qu'un mode examen chronométré avec notation automatique. L'ensemble de ces fonctionnalités est généré automatiquement à partir du contenu spécifique de chaque cours uploadé.
+
+L'architecture technique repose sur un backend \textbf{FastAPI} (Python), un frontend \textbf{Next.js} (React/TypeScript), une base de données \textbf{MongoDB}, et des modèles d'Intelligence Artificielle (Llama 3.3 70B via Groq, embeddings multilingues MiniLM, FAISS) orchestrés au sein d'un pipeline RAG complet.
+
+\vspace{0.5cm}
+\textbf{Mots-clés :} Intelligence Artificielle, EdTech, SaaS, NLP, RAG, LLM, FastAPI, Next.js, MongoDB, apprentissage adaptatif.
+
+\newpage
+
+% Tables
+\addcontentsline{toc}{chapter}{Table des matières}
+\tableofcontents
+\newpage
+
+% Liste des figures
+\listoffigures
+\markboth{Table des figures}{Table des figures}
+\addcontentsline{toc}{chapter}{Table des figures}
+\newpage
+
+% Liste des tableaux
+\listoftables
+\markboth{Liste des tableaux}{Liste des tableaux}
+\addcontentsline{toc}{chapter}{Liste des tableaux}
+\newpage
+
+% Liste des abréviations
+\chapter*{Liste des abréviations}
+\markboth{Liste des abréviations}{Liste des abréviations}
+\addcontentsline{toc}{chapter}{Liste des abréviations}
+\begin{longtable}{@{}ll@{}}
+\toprule
+\rowcolor{eduai-primary}
+\thead{Abréviation} & \thead{Signification} \\
+\midrule
+\endfirsthead
+\toprule
+\rowcolor{eduai-primary}
+\thead{Abréviation} & \thead{Signification} \\
+\midrule
+\endhead
+AI / IA & Artificial Intelligence / Intelligence Artificielle \\
+API & Application Programming Interface \\
+CORS & Cross-Origin Resource Sharing \\
+CRUD & Create, Read, Update, Delete \\
+CSS & Cascading Style Sheets \\
+FAISS & Facebook AI Similarity Search \\
+JWT & JSON Web Token \\
+LLM & Large Language Model \\
+MLD & Modèle Logique de Données \\
+NLP & Natural Language Processing \\
+PDF & Portable Document Format \\
+RAG & Retrieval-Augmented Generation \\
+REST & Representational State Transfer \\
+SaaS & Software as a Service \\
+SM-2 & SuperMemo Algorithm 2 \\
+UML & Unified Modeling Language \\
+UUID & Universally Unique Identifier \\
+\bottomrule
+\end{longtable}
+\newpage
+
+% ── CORPS DU RAPPORT ──────────────────────────────────────────────────────
+\hypersetup{pageanchor=true}
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+% Introduction générale
+\chapter*{Introduction générale}
+\markboth{Introduction générale}{Introduction générale}
+\addcontentsline{toc}{chapter}{Introduction générale}
+\input{chapters/introduction}
+
+% Chapitre 1
+\chapter{Contexte général et problématique}
+\input{chapters/chapitre1}
+
+% Chapitre 2
+\chapter{Analyse et spécification des besoins}
+\input{chapters/chapitre2}
+
+% Chapitre 3
+\chapter{Conception}
+\input{chapters/chapitre3}
+
+% Chapitre 4
+\chapter{Réalisation}
+\input{chapters/chapitre4}
+
+% Chapitre 5
+\chapter{Déploiement, modèle économique et perspectives}
+\input{chapters/chapitre5}
+
+% Conclusion générale
+\chapter*{Conclusion générale}
+\markboth{Conclusion générale}{Conclusion générale}
+\addcontentsline{toc}{chapter}{Conclusion générale}
+\input{chapters/conclusion}
+
+% ── BIBLIOGRAPHIE ─────────────────────────────────────────────────────────
+\bibliographystyle{plain}
+\phantomsection
+\begin{thebibliography}{99}
+\addcontentsline{toc}{chapter}{Bibliographie}
+
+\bibitem{lewis2020rag}
+P. Lewis et al., \textit{Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks}, NeurIPS, 2020.
+
+\bibitem{vaswani2017attention}
+A. Vaswani et al., \textit{Attention Is All You Need}, NeurIPS, 2017.
+
+\bibitem{devlin2019bert}
+J. Devlin et al., \textit{BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding}, NAACL, 2019.
+
+\bibitem{touvron2023llama}
+H. Touvron et al., \textit{LLaMA: Open and Efficient Foundation Language Models}, Meta AI, 2023.
+
+\bibitem{johnson2019faiss}
+J. Johnson, M. Douze, H. Jégou, \textit{Billion-scale similarity search with GPUs}, IEEE Transactions on Big Data, 2019.
+
+\bibitem{reimers2019sbert}
+N. Reimers, I. Gurevych, \textit{Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks}, EMNLP, 2019.
+
+\bibitem{wozniak1990sm2}
+P.A. Woźniak, \textit{Optimization of learning: SuperMemo algorithm SM-2}, 1990.
+
+\bibitem{hme2023maroc}
+Haut-Commissariat au Plan, \textit{Le Maroc en chiffres 2023 — Éducation et enseignement supérieur}, 2023.
+
+\bibitem{maroc2030}
+Ministère de l'Éducation Nationale, \textit{Vision stratégique 2015-2030 pour la réforme de l'éducation}, Maroc, 2015.
+
+\bibitem{holon2023edtech}
+HolonIQ, \textit{Global EdTech Market Size \& Forecast 2023-2030}, 2023.
+
+\bibitem{fastapi}
+S. Ramírez, \textit{FastAPI Documentation}, \url{https://fastapi.tiangolo.com}, 2024.
+
+\bibitem{nextjs}
+Vercel, \textit{Next.js Documentation}, \url{https://nextjs.org/docs}, 2024.
+
+\bibitem{mongodb}
+MongoDB Inc., \textit{MongoDB Documentation — Motor Async Driver}, \url{https://motor.readthedocs.io}, 2024.
+
+\bibitem{groq}
+Groq Inc., \textit{Groq API Documentation}, \url{https://console.groq.com/docs}, 2024.
+
+\end{thebibliography}
+
+% ── ANNEXES ───────────────────────────────────────────────────────────────
+\appendix
+\chapter*{Annexes}
+\markboth{Annexes}{Annexes}
+\addcontentsline{toc}{chapter}{Annexes}
+
+% ── Annexe A : Diagrammes de cas d'utilisation ────────────────────────────
+\chapter{Diagrammes de cas d'utilisation}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/uc_global.png}
+\caption{Diagramme de cas d'utilisation global}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/uc_p1_authentification.png}
+\caption{Cas d'utilisation — P1 : Authentification}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/uc_p2_gestion_cours.png}
+\caption{Cas d'utilisation — P2 : Gestion des cours}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/uc_p3_qa.png}
+\caption{Cas d'utilisation — P3 : Questions-Réponses}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/uc_p4_resumes.png}
+\caption{Cas d'utilisation — P4 : Résumés}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/uc_p5_quiz.png}
+\caption{Cas d'utilisation — P5 : Quiz}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/uc_p6_flashcards.png}
+\caption{Cas d'utilisation — P6 : Flashcards}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/uc_p7_mindmap.png}
+\caption{Cas d'utilisation — P7 : Carte mentale}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/uc_p8_examen.png}
+\caption{Cas d'utilisation — P8 : Examen}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/uc_p9_administration.png}
+\caption{Cas d'utilisation — P9 : Administration}
+\end{figure}
+
+% ── Annexe B : Diagrammes de séquence ─────────────────────────────────────
+\chapter{Diagrammes de séquence}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/sd_s1_auth.png}
+\caption{Diagramme de séquence — Authentification}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/sd_s2_upload.png}
+\caption{Diagramme de séquence — Upload de cours}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/sd_s3_qa.png}
+\caption{Diagramme de séquence — Questions-Réponses (RAG)}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/sd_s4_summary.png}
+\caption{Diagramme de séquence — Génération de résumé}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/sd_s5_quiz.png}
+\caption{Diagramme de séquence — Quiz}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/sd_s6_flashcards.png}
+\caption{Diagramme de séquence — Flashcards}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/sd_s7_mindmap.png}
+\caption{Diagramme de séquence — Carte mentale}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/sd_s8_exam.png}
+\caption{Diagramme de séquence — Examen}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/sd_s9_admin.png}
+\caption{Diagramme de séquence — Administration}
+\end{figure}
+
+% ── Annexe C : Modèle Logique de Données ──────────────────────────────────
+\chapter{Modèle Logique de Données}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/mld_1_auth_cours.png}
+\caption{MLD 1/3 — Authentification et Cours (4 collections)}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/mld_2_quiz_flash.png}
+\caption{MLD 2/3 — Résumés, Q\&A, Quiz et Flashcards (7 collections)}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/mld_3_exam_activite.png}
+\caption{MLD 3/3 — Carte mentale, Examens et Activité (4 collections)}
+\end{figure}
+
+% ── Annexe D : Interfaces utilisateur ─────────────────────────────────────
+\chapter{Interfaces utilisateur}
+
+\begin{figure}[H]
+\centering
+\fbox{\parbox{0.9\textwidth}{\centering\vspace{4cm}
+\textit{[Capture d'écran : Page d'accueil — Hero section avec CTA]}
+\vspace{4cm}}}
+\caption{Page d'accueil EduAI}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\fbox{\parbox{0.9\textwidth}{\centering\vspace{3.5cm}
+\textit{[Capture d'écran : Formulaire d'inscription / connexion]}
+\vspace{3.5cm}}}
+\caption{Interface d'authentification}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\fbox{\parbox{0.9\textwidth}{\centering\vspace{4cm}
+\textit{[Capture d'écran : Dashboard avec les cartes des cours]}
+\vspace{4cm}}}
+\caption{Tableau de bord — Mes cours}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\fbox{\parbox{0.9\textwidth}{\centering\vspace{3.5cm}
+\textit{[Capture d'écran : Interface de glisser-déposer pour l'upload PDF]}
+\vspace{3.5cm}}}
+\caption{Interface d'upload de cours}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\fbox{\parbox{0.9\textwidth}{\centering\vspace{4cm}
+\textit{[Capture d'écran : Interface de chat Q\&A avec streaming]}
+\vspace{4cm}}}
+\caption{Interface de Questions-Réponses (chat)}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\fbox{\parbox{0.9\textwidth}{\centering\vspace{4cm}
+\textit{[Capture d'écran : Résumé structuré par chapitre avec concepts clés]}
+\vspace{4cm}}}
+\caption{Interface des résumés pédagogiques}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\fbox{\parbox{0.9\textwidth}{\centering\vspace{4cm}
+\textit{[Capture d'écran : Quiz QCM en cours avec score]}
+\vspace{4cm}}}
+\caption{Interface du quiz interactif}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\fbox{\parbox{0.9\textwidth}{\centering\vspace{3.5cm}
+\textit{[Capture d'écran : Flashcard retournée avec boutons de qualité]}
+\vspace{3.5cm}}}
+\caption{Interface des flashcards (révision SM-2)}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\fbox{\parbox{0.9\textwidth}{\centering\vspace{4cm}
+\textit{[Capture d'écran : Carte mentale interactive (ReactFlow)]}
+\vspace{4cm}}}
+\caption{Interface de la carte mentale}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\fbox{\parbox{0.9\textwidth}{\centering\vspace{4cm}
+\textit{[Capture d'écran : Examen en cours avec timer et questions]}
+\vspace{4cm}}}
+\caption{Interface du mode examen}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\fbox{\parbox{0.9\textwidth}{\centering\vspace{4cm}
+\textit{[Capture d'écran : Admin panel — gestion des utilisateurs]}
+\vspace{4cm}}}
+\caption{Panneau d'administration}
+\end{figure}
+
+\end{document}

@@ -1,0 +1,175 @@
+% ══════════════════════════════════════════════════════════════════════════════
+%  CHAPITRE 2 — ANALYSE ET SPÉCIFICATION DES BESOINS
+% ══════════════════════════════════════════════════════════════════════════════
+
+\section{Introduction}
+
+Ce chapitre détaille les besoins fonctionnels et non-fonctionnels de la plateforme EduAI, ainsi que les cas d'utilisation. Cette étape d'analyse a servi de base pour les phases de conception et de réalisation.
+
+% ──────────────────────────────────────────────────────────────────────────────
+\section{Identification des acteurs}
+
+Le système EduAI met en jeu les acteurs suivants :
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{llX}
+\toprule
+\rowcolor{eduai-primary}
+\thead{Acteur} & \thead{Type} & \thead{Description} \\
+\midrule
+Étudiant (Free) & Principal & Utilisateur inscrit au plan gratuit (limité à 3 cours) \\
+Étudiant (Pro)  & Principal & Utilisateur abonné au plan Pro (accès illimité) \\
+Administrateur  & Principal & Gestion des utilisateurs, des plans et des statistiques globales \\
+Groq LLM        & Secondaire & Service cloud d'inférence (Llama 3.3 70B) \\
+MongoDB         & Secondaire & Système de gestion de base de données NoSQL \\
+FAISS           & Secondaire & Bibliothèque d'indexation vectorielle pour la recherche sémantique \\
+\bottomrule
+\end{tabularx}
+\caption{Acteurs du système EduAI}
+\label{tab:acteurs}
+\end{table}
+
+% ──────────────────────────────────────────────────────────────────────────────
+\section{Besoins fonctionnels}
+
+Les besoins fonctionnels sont organisés en neuf modules, chacun correspondant à un domaine fonctionnel du système :
+
+\subsection{Module Authentification (P1)}
+\begin{itemize}
+  \item Inscription avec email, nom et mot de passe (hachage bcrypt) ;
+  \item Connexion sécurisée avec génération de token JWT (HS256, validité 7 jours) ;
+  \item Récupération de mot de passe oublié (token de réinitialisation avec expiration) ;
+  \item Gestion du profil utilisateur (paramètres, objectifs journaliers) ;
+  \item Gestion des rôles : \texttt{user} et \texttt{admin} ;
+  \item Gestion des plans : \texttt{free} (3 cours maximum) et \texttt{pro} (accès illimité).
+\end{itemize}
+
+\subsection{Module Gestion des Cours (P2)}
+\begin{itemize}
+  \item Upload de fichiers PDF (taille maximale : 50 Mo) ;
+  \item Extraction automatique du texte via PyMuPDF ;
+  \item Découpage intelligent en chunks (400 tokens, chevauchement de 50) ;
+  \item Détection automatique des chapitres ;
+  \item Génération d'embeddings multilingues (paraphrase-multilingual-MiniLM-L12-v2, 384 dimensions) ;
+  \item Indexation FAISS (IndexFlatIP — similarité cosinus) ;
+  \item Vérification de la limite du plan (3 cours pour le plan gratuit) ;
+  \item Suppression de cours avec cascade sur l'ensemble des données associées.
+\end{itemize}
+
+\subsection{Module Questions-Réponses (P3)}
+\begin{itemize}
+  \item Chat conversationnel contextuel avec mémoire de session ;
+  \item Pipeline RAG : récupération des top-3 chunks pertinents, puis génération LLM ;
+  \item Streaming des réponses via Server-Sent Events (SSE) ;
+  \item Fallback extractif CamemBERT en cas d'indisponibilité du LLM ;
+  \item Historique complet des échanges par session.
+\end{itemize}
+
+\subsection{Module Résumés Pédagogiques (P4)}
+\begin{itemize}
+  \item Génération automatique de résumés structurés par chapitre ;
+  \item Pipeline NLP hybride : spaCy (extraction) + LLM (résumé narratif enrichi) ;
+  \item Extraction des concepts clés par chapitre ;
+  \item Cache intelligent avec versioning (\texttt{v4-groq}) ;
+  \item Pré-génération en arrière-plan immédiatement après l'upload ;
+  \item Export PDF du résumé complet.
+\end{itemize}
+
+\subsection{Module Quiz Interactif (P5)}
+\begin{itemize}
+  \item Génération automatique de QCM par le LLM (1 à 30 questions) ;
+  \item Questions contextuelles basées sur le contenu spécifique du cours ;
+  \item Soumission et calcul du score en temps réel ;
+  \item Possibilité de régénération avec des questions différentes ;
+  \item Mise en cache des quiz pour optimiser les performances ;
+  \item Historique des résultats par cours.
+\end{itemize}
+
+\subsection{Module Flashcards (P6)}
+\begin{itemize}
+  \item Génération automatique de flashcards par le LLM ;
+  \item Algorithme de répétition espacée SM-2 (intervalle, ease\_factor, repetitions) ;
+  \item Session de révision avec évaluation de la qualité de réponse (0-5) ;
+  \item Trois niveaux de difficulté : facile, moyen, difficile ;
+  \item Calcul automatique de la prochaine date de révision ;
+  \item Export PDF des flashcards.
+\end{itemize}
+
+\subsection{Module Carte Mentale (P7)}
+\begin{itemize}
+  \item Génération automatique par le LLM (nœuds et arêtes) ;
+  \item Visualisation interactive dans l'interface ;
+  \item Une carte mentale par couple (cours, utilisateur) ;
+  \item Possibilité de régénération.
+\end{itemize}
+
+\subsection{Module Examen Simulé (P8)}
+\begin{itemize}
+  \item Configuration personnalisable : nombre de questions (5-40), durée (5-120 min) ;
+  \item Chronomètre côté client ;
+  \item Soumission avec calcul du score, pourcentage et attribution de la note (A-F) ;
+  \item Seuil de réussite fixé à 60\% ;
+  \item Enregistrement du temps effectivement passé ;
+  \item Historique des examens avec statut (en cours / soumis).
+\end{itemize}
+
+\subsection{Module Administration (P9)}
+\begin{itemize}
+  \item Tableau de bord avec statistiques globales ;
+  \item Gestion complète (CRUD) des utilisateurs ;
+  \item Modification des rôles et des plans d'abonnement ;
+  \item Suppression de comptes avec cascade sur toutes les données associées ;
+  \item Accès restreint aux utilisateurs disposant du rôle \texttt{admin}.
+\end{itemize}
+
+% ──────────────────────────────────────────────────────────────────────────────
+\section{Besoins non-fonctionnels}
+
+En plus des fonctionnalités métier, la plateforme doit respecter un certain nombre d'exigences non-fonctionnelles :
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\rowcolor{eduai-primary}
+\thead{Exigence} & \thead{Description} \\
+\midrule
+\textbf{Performance}   & Temps de réponse inférieur à 2 secondes pour les endpoints non-LLM ; streaming SSE pour les réponses longues \\
+\textbf{Scalabilité}   & Architecture microservices conteneurisée (Docker) permettant un scaling horizontal \\
+\textbf{Sécurité}      & Authentification JWT HS256, hachage bcrypt, validation Pydantic, configuration CORS stricte, conformité OWASP Top-10 \\
+\textbf{Disponibilité} & Mécanisme de fallback extractif automatique en cas d'indisponibilité du LLM \\
+\textbf{Maintenabilité}& Code modulaire avec séparation claire (services / routers / database), documentation API auto-générée (Swagger) \\
+\textbf{Portabilité}   & Déploiement via Docker Compose sur tout serveur Linux ou Windows \\
+\textbf{Ergonomie}     & Interface responsive avec mode sombre/clair, navigation intuitive par onglets \\
+\textbf{Multilingue}   & Support natif du français et de l'arabe grâce aux embeddings multilingues \\
+\bottomrule
+\end{tabularx}
+\caption{Besoins non-fonctionnels}
+\label{tab:non-fonctionnels}
+\end{table}
+
+% ──────────────────────────────────────────────────────────────────────────────
+\section{Diagrammes de cas d'utilisation}
+
+Les cas d'utilisation ont été modélisés en UML 2.0. Ils couvrent les neuf modules identifiés et montrent les interactions entre les acteurs principaux (étudiant, administrateur) et les acteurs secondaires (Groq LLM, MongoDB, FAISS).
+
+L'intégralité des diagrammes de cas d'utilisation (vue d'ensemble et vues détaillées par module) est présentée en \textbf{Annexe~A}.
+
+% ──────────────────────────────────────────────────────────────────────────────
+\section{Règles de gestion}
+
+Les règles de gestion suivantes encadrent le fonctionnement du système :
+
+\begin{enumerate}[label=\textbf{RG\arabic*.}]
+  \item Un utilisateur au plan \texttt{free} ne peut pas posséder plus de 3 cours ;
+  \item le mot de passe doit être haché (bcrypt) avant toute persistance ;
+  \item un token JWT expire après 7 jours ;
+  \item un token de réinitialisation de mot de passe expire après 1 heure ;
+  \item la suppression d'un cours entraîne la suppression en cascade de toutes les données associées (chunks, résumés, quiz, flashcards, cartes mentales, examens) ;
+  \item l'algorithme SM-2 calcule la prochaine révision : si la qualité $\geq 3$, l'intervalle augmente ; sinon, il est réinitialisé à 1 ;
+  \item un examen est considéré réussi si le pourcentage obtenu est $\geq 60\%$ ;
+  \item les notes d'examen suivent le barème : A $\geq 90$, B $\geq 80$, C $\geq 70$, D $\geq 60$, F $< 60$ ;
+  \item le cache des résumés utilise un système de versioning (\texttt{v4-groq}) pour invalider automatiquement les versions obsolètes ;
+  \item seuls les utilisateurs disposant du rôle \texttt{admin} peuvent accéder au module d'administration.
+\end{enumerate}

@@ -1,0 +1,140 @@
+@startuml EduAI_UseCase_Page3
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam actorStyle awesome
+
+skinparam usecase {
+  BackgroundColor #E8F4FD
+  BorderColor #2E86C1
+  FontSize 11
+  FontName Arial
+}
+skinparam actor {
+  BackgroundColor #D5F5E3
+  BorderColor #1E8449
+  FontSize 12
+  FontName Arial
+}
+skinparam package {
+  BackgroundColor #FEF9E7
+  BorderColor #D4AC0D
+  FontSize 13
+  FontName Arial Bold
+}
+skinparam arrow {
+  Color #2E86C1
+  FontSize 10
+}
+
+title **EduAI — Cas d'Utilisation · Page 3/4**\n**Quiz Interactif · Flashcards (SM-2) · Mind Map**
+
+left to right direction
+
+' ── Acteurs ──────────────────────────────────────────────────
+actor "Étudiant" as Student
+actor "Groq LLM\n(llama-3.3-70b)" as LLM #LightBlue
+actor "MongoDB" as DB #LightYellow
+
+' ── Paquet 5 : Quiz Interactif ───────────────────────────────
+package "5. Quiz Interactif" {
+  usecase "Générer un quiz\n(GET /quiz/{course_id})" as UC_QuizGen
+  usecase "Générer questions QCM\n(Groq LLM · 1–30 questions)" as UC_QuizLLM
+  usecase "Soumettre les réponses\n(POST /quiz/submit)" as UC_QuizSubmit
+  usecase "Voir résultats détaillés\n(score · corrections · explications)" as UC_QuizResult
+  usecase "Régénérer le quiz\n(GET /quiz/{course_id}?regenerate=true)" as UC_QuizRegen
+}
+
+' ── Paquet 6 : Flashcards (SM-2) ─────────────────────────────
+package "6. Flashcards (SM-2)" {
+  usecase "Générer flashcards\n(POST /flashcards/generate · 3–30 cartes)" as UC_FlashGen
+  usecase "Générer cartes Q/R\n(Groq LLM)" as UC_FlashLLM
+  usecase "Session de révision\n(GET /flashcards/review/{course_id})" as UC_FlashSession
+  usecase "Réviser une carte\n(POST /flashcards/review)" as UC_FlashReview
+  usecase "Appliquer algorithme SM-2\n(interval · repetitions · ease_factor)" as UC_SM2
+  usecase "Consulter son deck\n(GET /flashcards/deck/{course_id})" as UC_FlashList
+  usecase "Supprimer son deck\n(DELETE /flashcards/deck/{course_id})" as UC_FlashDelete
+  usecase "Exporter flashcards PDF\n(GET /export/flashcards/{course_id})" as UC_FlashExport
+}
+
+' ── Paquet 7 : Mind Map ──────────────────────────────────────
+package "7. Mind Map" {
+  usecase "Générer mind map\n(GET /mindmap/{course_id})" as UC_MindMap
+  usecase "Construire graphe\nde concepts (LLM)" as UC_MindLLM
+}
+
+' ── Relations Étudiant → UCs ─────────────────────────────────
+Student --> UC_QuizGen
+Student --> UC_QuizSubmit
+Student --> UC_QuizRegen
+Student --> UC_FlashGen
+Student --> UC_FlashSession
+Student --> UC_FlashReview
+Student --> UC_FlashList
+Student --> UC_FlashDelete
+Student --> UC_FlashExport
+Student --> UC_MindMap
+
+' ── Include / Extend ─────────────────────────────────────────
+UC_QuizGen    ..> UC_QuizLLM    : <<include>>
+UC_QuizSubmit ..> UC_QuizResult : <<include>>
+UC_QuizRegen  ..> UC_QuizGen    : <<extend>>\n[regenerate=true\n(invalide le cache)]
+
+UC_FlashGen    ..> UC_FlashLLM   : <<include>>
+' UC_FlashSession et UC_FlashReview sont deux endpoints indépendants :
+' GET /flashcards/review/{course_id} retourne les cartes dues
+' POST /flashcards/review soumet la qualité d'une carte (SM-2)
+UC_FlashReview ..> UC_SM2        : <<include>>
+
+UC_MindMap ..> UC_MindLLM : <<include>>
+
+note right of UC_QuizSubmit
+  Résultats :
+  score · total · percentage
+  corrections + explications
+  passed = percentage >= 60%
+  Sauvegardé dans quiz_results
+  (alimente les analytics)
+end note
+
+note right of UC_SM2
+  SM-2 : Super-Memo algorithm
+  Paramètres mis à jour :
+  - interval     (jours avant révision)
+  - repetitions  (compteur succès)
+  - ease_factor  (2.5 ± 0.1 par quality)
+  - next_review  (date prochaine révision)
+  quality : 0 (oubli) → 5 (parfait)
+end note
+
+note bottom of UC_FlashSession
+  Retourne cartes due_today
+  (next_review ≤ maintenant)
+  due_today : count inclus dans
+  la réponse FlashcardDeckResponse
+end note
+
+note right of UC_MindMap
+  Retourne graphe JSON :
+  nodes [{id, label, type}]
+  edges [{source, target, label}]
+  type : concept | chapter | detail
+  Mis en cache MongoDB
+end note
+
+' ── Relations systèmes externes ──────────────────────────────
+UC_QuizLLM  --> LLM : generate_quiz_llm()
+UC_FlashLLM --> LLM : generate_flashcards()
+UC_MindLLM  --> LLM : build_mindmap()
+
+UC_QuizGen     --> DB : get chunks · cache quiz
+UC_QuizSubmit  --> DB : get quiz · save score (quiz_results)
+UC_QuizRegen   --> DB : invalide cache quiz
+UC_FlashGen    --> DB : save flashcards (collection flashcards)
+UC_FlashSession --> DB : find cards where next_review ≤ now
+UC_FlashReview --> DB : update SM-2 params + next_review
+UC_FlashList   --> DB : find flashcards by course_id
+UC_FlashDelete --> DB : delete flashcards by course_id
+UC_FlashExport --> DB : get flashcards for PDF
+UC_MindMap     --> DB : get chunks · cache mindmap
+
+@enduml

@@ -1,0 +1,230 @@
+% ══════════════════════════════════════════════════════════════════════════════
+%  CHAPITRE 5 — DÉPLOIEMENT, MODÈLE ÉCONOMIQUE ET PERSPECTIVES
+% ══════════════════════════════════════════════════════════════════════════════
+
+\section{Introduction}
+
+Ce dernier chapitre traite du d\u00e9ploiement de la plateforme, du mod\u00e8le \u00e9conomique que j'envisage pour le march\u00e9 marocain, et des pistes d'\u00e9volution futures.
+
+% ──────────────────────────────────────────────────────────────────────────────
+\section{Déploiement}
+
+\subsection{Architecture de déploiement}
+
+L'application EduAI est déployée à l'aide de \textbf{Docker Compose} pour l'orchestration des conteneurs et de \textbf{Portainer} pour la supervision graphique, garantissant une solution portable et reproductible. Le tableau~\ref{tab:docker-services} décrit les quatre services composant l'architecture de déploiement :
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{llX}
+\toprule
+\rowcolor{eduai-primary}
+\thead{Service} & \thead{Image} & \thead{Configuration} \\
+\midrule
+\texttt{backend}  & eduai-backend (Python 3.11-slim) & Port 8000, volumes: models\_cache, data/faiss \\
+\texttt{frontend} & eduai-frontend (Node 20-alpine) & Port 3000, variable: NEXT\_PUBLIC\_API\_URL \\
+\texttt{mongodb}  & mongo:7 & Port 27017, volume persistant, auth désactivé (dev) \\
+\texttt{portainer}& portainer/portainer-ce:latest & Port 9443, gestion visuelle des conteneurs \\
+\bottomrule
+\end{tabularx}
+\caption{Services Docker Compose}
+\label{tab:docker-services}
+\end{table}
+
+\subsection{Fichier Docker Compose}
+
+\begin{lstlisting}[language=bash, caption={docker-compose.yml simplifié}]
+version: "3.8"
+services:
+  backend:
+    build: ./backend
+    ports: ["8000:8000"]
+    environment:
+      - MONGODB_URL=mongodb://mongodb:27017
+      - GROQ_API_KEY=${GROQ_API_KEY}
+    volumes:
+      - ./models_cache:/app/models_cache
+      - ./data/faiss_indexes:/app/data/faiss_indexes
+    depends_on: [mongodb]
+
+  frontend:
+    build: ./frontend
+    ports: ["3000:3000"]
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:8000
+    depends_on: [backend]
+
+  mongodb:
+    image: mongo:7
+    ports: ["27017:27017"]
+    volumes:
+      - mongo_data:/data/db
+\end{lstlisting}
+
+\subsection{Dockerfile Backend}
+
+\begin{lstlisting}[language=bash, caption={Dockerfile du backend (multi-stage)}]
+FROM python:3.11-slim AS base
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+EXPOSE 8000
+CMD ["uvicorn", "backend.main:app",
+     "--host", "0.0.0.0", "--port", "8000"]
+\end{lstlisting}
+
+\subsection{Procédure de déploiement}
+
+La mise en production de la plateforme s'effectue en cinq étapes :
+
+\begin{enumerate}
+  \item cloner le dépôt et configurer le fichier \texttt{.env} (clé Groq, URL MongoDB) ;
+  \item placer les modèles pré-téléchargés dans le répertoire \texttt{models\_cache/} ;
+  \item exécuter la commande : \texttt{docker compose up --build -d} ;
+  \item accéder à Portainer sur \texttt{https://localhost:9443} pour la supervision ;
+  \item vérifier l'accessibilité de l'application sur \texttt{http://localhost:3000}.
+\end{enumerate}
+
+\subsection{Monitoring et maintenance}
+
+\begin{itemize}
+  \item \textbf{Portainer :} supervision en temps réel des conteneurs (CPU, mémoire, journaux) ;
+  \item \textbf{Logs structurés :} format \texttt{timestamp [module] level — message} ;
+  \item \textbf{Health check :} endpoint \texttt{GET /health} vérifiant la connectivité MongoDB et l'accessibilité du LLM ;
+  \item \textbf{Volumes persistants :} données MongoDB et index FAISS préservés entre les redéploiements.
+\end{itemize}
+
+% ──────────────────────────────────────────────────────────────────────────────
+\section{Modèle économique}
+
+\subsection{Modèle SaaS — Freemium}
+
+EduAI adopte un modèle économique \textbf{freemium} adapté au pouvoir d'achat des étudiants marocains. Le tableau~\ref{tab:plans} compare les fonctionnalités offertes par chacun des deux plans :
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{lXX}
+\toprule
+\rowcolor{eduai-primary}
+\thead{Critère} & \thead{Plan Gratuit (Free)} & \thead{Plan Pro} \\
+\midrule
+Prix & 0 MAD & 49 MAD/mois (env. 4,5 €) \\
+Nombre de cours & 3 maximum & Illimité \\
+Q\&A Chat & \checkmark{} (limité à 20 questions/jour) & \checkmark{} Illimité \\
+Résumés & \checkmark{} & \checkmark{} \\
+Quiz & \checkmark{} (10 questions max) & \checkmark{} (30 questions, personnalisable) \\
+Flashcards & \checkmark{} (basique) & \checkmark{} + Export PDF \\
+Mode Examen & $\times$ & \checkmark{} \\
+Carte Mentale & $\times$ & \checkmark{} \\
+Support & Communauté & Email prioritaire \\
+\bottomrule
+\end{tabularx}
+\caption{Comparaison des plans Free et Pro}
+\label{tab:plans}
+\end{table}
+
+\subsection{Cible et taille du marché}
+
+L'étude de marché s'appuie sur trois niveaux d'analyse :
+
+\begin{itemize}
+  \item \textbf{TAM} (Total Addressable Market) : 1,2 million d'étudiants dans l'enseignement supérieur au Maroc (2024) ;
+  \item \textbf{SAM} (Serviceable Available Market) : 400~000 étudiants connectés disposant d'un ordinateur ou d'un smartphone ;
+  \item \textbf{SOM} (Serviceable Obtainable Market) : 5~000 utilisateurs visés la première année (objectif réaliste).
+\end{itemize}
+
+\subsection{Projections financières (3 ans)}
+
+Le tableau~\ref{tab:projections} présente les projections de revenus sur un horizon de trois ans :
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lrrr}
+\toprule
+\rowcolor{eduai-primary}
+\thead{Indicateur} & \thead{Année 1} & \thead{Année 2} & \thead{Année 3} \\
+\midrule
+Utilisateurs inscrits (total) & 5~000 & 20~000 & 60~000 \\
+Taux de conversion Free $\to$ Pro & 5\% & 8\% & 12\% \\
+Abonnés Pro (actifs) & 250 & 1~600 & 7~200 \\
+Revenus mensuels (MAD) & 12~250 & 78~400 & 352~800 \\
+Revenus annuels (MAD) & 147~000 & 940~800 & 4~233~600 \\
+\textbf{Revenus annuels (EUR)} & \textbf{13~400} & \textbf{85~500} & \textbf{385~000} \\
+\bottomrule
+\end{tabular}
+\caption{Projections de revenus sur 3 ans}
+\label{tab:projections}
+\end{table}
+
+\textbf{Hypothèses retenues :}
+\begin{itemize}
+  \item croissance organique (bouche-à-oreille universitaire, réseaux sociaux) ;
+  \item taux de conversion progressif grâce à l'amélioration continue du produit ;
+  \item prix Pro compétitif adapté au pouvoir d'achat des étudiants marocains ;
+  \item absence de dépenses publicitaires massives durant les six premiers mois (validation du product-market fit).
+\end{itemize}
+
+\subsection{Structure des coûts}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{lrX}
+\toprule
+\rowcolor{eduai-primary}
+\thead{Poste} & \thead{Coût/mois} & \thead{Détail} \\
+\midrule
+Serveur VPS (production) & 500 MAD & VPS 8 Go RAM, 4 vCPU (hébergeur marocain ou OVH) \\
+Groq API & 0 – 200 MAD & Tier gratuit suffisant pour la phase beta \\
+Nom de domaine + SSL & 100 MAD & Renouvellement annuel \\
+Marketing initial & 500 MAD & Réseaux sociaux, partenariats étudiants \\
+\textbf{Total mensuel} & \textbf{1 300 MAD} & \textbf{(env. 120 €/mois)} \\
+\bottomrule
+\end{tabularx}
+\caption{Structure des coûts mensuels (phase de lancement)}
+\label{tab:costs}
+\end{table}
+
+\subsection{Contexte favorable — Maroc Digital 2030}
+
+Le projet s'inscrit dans la stratégie nationale \textbf{Maroc Digital 2030} qui vise :
+\begin{itemize}
+  \item la numérisation des services publics, dont l'éducation ;
+  \item le soutien aux startups technologiques marocaines ;
+  \item l'amélioration de l'accès à une éducation de qualité ;
+  \item le développement de l'intelligence artificielle appliquée aux secteurs stratégiques.
+\end{itemize}
+
+% ──────────────────────────────────────────────────────────────────────────────
+\section{Perspectives d'évolution}
+
+Plusieurs axes d'amélioration sont envisagés afin de faire évoluer EduAI d'un prototype fonctionnel vers un produit commercialisable.
+
+\subsection{Court terme (6 mois)}
+
+\begin{itemize}
+  \item développement d'une application mobile (React Native) permettant l'accès hors-ligne aux flashcards ;
+  \item intégration d'un module de paiement en ligne adapté au marché marocain (CMI, Payzone) ;
+  \item ajout d'un mode collaboratif pour le partage de cours entre étudiants ;
+  \item prise en charge des fichiers PPTX et DOCX en complément du PDF ;
+  \item enrichissement du mode examen avec des types de questions variés (vrai/faux, texte à trous).
+\end{itemize}
+
+\subsection{Moyen terme (1 an)}
+
+\begin{itemize}
+  \item mise en place d'une offre institutionnelle (B2B) à destination des universités et des écoles ;
+  \item développement d'un tableau de bord enseignant pour le suivi pédagogique des étudiants ;
+  \item intégration de fonctionnalités vocales (synthèse vocale pour les résumés, reconnaissance vocale pour les questions) ;
+  \item gamification avancée (badges, classements, séries de connexion) ;
+  \item extension multilingue : ajout de l'anglais et de l'arabe dialectal.
+\end{itemize}
+
+\subsection{Long terme (2--3 ans)}
+
+\begin{itemize}
+  \item expansion géographique vers la Tunisie, l'Algérie et l'Afrique francophone ;
+  \item partenariats institutionnels avec les ministères de l'éducation ;
+  \item entraînement d'un LLM spécialisé sur les curricula marocains ;
+  \item développement d'un agent tuteur personnalisé basé sur l'apprentissage adaptatif ;
+  \item certification intégrée en partenariat avec des organismes accrédités.
+\end{itemize}

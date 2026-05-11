@@ -1,0 +1,50 @@
+﻿@startuml SD_S7_MindMap
+!theme plain
+title SD_S7 – Mind Map
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+
+actor Utilisateur as U
+participant "Frontend\n(ReactFlow)" as FE
+participant "FastAPI\n/api/mindmap" as API
+participant "MongoDB\ndb.courses/chunks/mindmaps" as DB
+participant "LLM MindMap\n(Groq/Ollama)" as LLM
+
+== Chargement ==
+U -> FE : /course/{id}/mindmap
+FE -> API : GET /api/mindmap/{courseId}
+API -> DB : courses.findOne({_id: course_id, user_id})
+alt Cours non trouvé
+    API --> FE : 404
+else
+    API -> DB : mindmaps.findOne({course_id, user_id})
+    alt Cache trouvé
+        API --> FE : 200 MindMapResponse{course_id, course_name, nodes[], edges[]}
+    else
+        API -> DB : chunks.find({course_id}) → chunks[]
+        alt Aucun chunk
+            API --> FE : 400 "Aucun contenu indexé"
+        else
+            API -> LLM : generate_mindmap(chunks, chapters)
+            alt LLM disponible
+                LLM -> LLM : _extract_content(chunks, max_chars=4000)
+                LLM --> API : (nodes[], edges[])
+            else
+                LLM -> LLM : _fallback_mindmap(chapters, chunks)
+                LLM --> API : (nodes[], edges[])
+            end
+            API -> DB : mindmaps.replaceOne({course_id, user_id},\n{course_id, user_id, nodes, edges}, upsert=true)
+            API --> FE : 200 MindMapResponse{nodes[{id,label,type,chapter}], edges[{source,target,label}]}
+        end
+    end
+end
+FE -> FE : setNodes() + setEdges() → rendu React Flow
+
+== Régénération ==
+U -> FE : Clic "Régénérer"
+FE -> API : DELETE /api/mindmap/{courseId}
+API -> DB : mindmaps.deleteOne({course_id, user_id})
+API --> FE : 200 {ok:true, message:"Mind map supprimée, sera regénérée au prochain appel."}
+FE -> FE : Relance GET /api/mindmap/{courseId}
+
+@enduml

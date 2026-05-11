@@ -1,0 +1,54 @@
+﻿@startuml SD_S5_Quiz
+!theme plain
+title SD_S5 – Génération & Soumission de Quiz
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+
+actor Utilisateur as U
+participant "Frontend\n(QuizModule)" as FE
+participant "FastAPI\n/api/quiz" as API
+participant "MongoDB\ndb.courses/chunks/quiz_cache/quizzes" as DB
+participant "LLM Quiz\n(Groq/Ollama)" as LLM
+
+== Obtenir un quiz ==
+U -> FE : Demande quiz (n questions)
+FE -> API : GET /api/quiz/{courseId}?num_questions=10&regenerate=false
+API -> DB : courses.findOne({_id: course_id, user_id})
+alt Cours non trouvé
+    API --> FE : 404
+else
+    alt regenerate=false et n=10
+        API -> DB : quiz_cache.findOne({course_id})
+        alt Cache trouvé
+            API --> FE : 200 QuizResponse{quiz_id, questions[]}
+            FE -> FE : Affiche QuizModule (N questions)
+        end
+    else regenerate=true
+        API -> DB : quiz_cache.deleteOne({course_id})
+    end
+    API -> DB : chunks.find({course_id}) → chunks[]
+    API -> LLM : generate_quiz_llm(chunks, num_questions)
+    alt LLM indisponible
+        API --> FE : 503 "LLM indisponible"
+    else
+        LLM --> API : questions[{id, question, options[4],\ncorrect_index, explanation, difficulty}]
+        API -> DB : quizzes.insertOne({quiz_id, course_id, questions})
+        API -> DB : quiz_cache.updateOne({course_id}, {quiz_id, questions}, upsert=true)
+        API --> FE : 200 QuizResponse{quiz_id, questions[]}
+        FE -> FE : Affiche QuizModule (N questions)
+    end
+end
+
+== Soumission ==
+U -> FE : Répond aux questions → Soumettre
+FE -> API : POST /api/quiz/submit {quiz_id, answers:[int]}
+API -> DB : quizzes.findOne({quiz_id})
+alt Quiz non trouvé
+    API --> FE : 404
+else
+    API -> API : score = count(answer == correct_index)\npercentage = score/total*100\npassed = percentage >= 60
+    API --> FE : 200 QuizResult{score, total, percentage, passed, details[]}
+    FE -> FE : Affiche résultat (score, pass/fail, corrections)
+end
+
+@enduml

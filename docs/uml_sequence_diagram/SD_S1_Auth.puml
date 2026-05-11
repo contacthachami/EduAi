@@ -1,0 +1,78 @@
+﻿@startuml SD_S1_Auth
+!theme plain
+title SD_S1 – Authentification
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+
+actor Utilisateur as U
+participant "Frontend\n(useAuth)" as FE
+participant "FastAPI\n/api/auth" as API
+participant "services.auth" as SA
+participant "MongoDB\ndb.users" as DB
+participant "MongoDB\ndb.password_resets" as DBR
+
+== Register ==
+U -> FE : register(name, email, password)
+FE -> API : POST /api/auth/register\n{name, email, password}
+API -> DB : users.findOne({email})
+alt Email déjà utilisé
+    API --> FE : 409 "Email déjà enregistré"
+else
+    API -> SA : hash_password(password)
+    API -> DB : users.insertOne({name, email, password_hash,\nrole:"user", plan:"free", created_at})
+    API -> SA : create_access_token(user_id, email) → JWT HS256 exp=7j
+    API --> FE : 201 {token, user{id,name,email,role,plan}}
+    FE -> FE : localStorage.setItem("eduai_token", token)
+    FE -> FE : set({token, user}) → redirect /courses
+end
+
+== Login ==
+U -> FE : login(email, password)
+FE -> API : POST /api/auth/login {email, password}
+API -> DB : users.findOne({email})
+alt Identifiants invalides
+    API --> FE : 401 "Email ou mot de passe incorrect"
+else
+    API -> SA : verify_password(password, password_hash)
+    API -> SA : create_access_token(user_id, email)
+    API --> FE : 200 {token, user{id,name,email,role,plan}}
+    FE -> FE : localStorage.setItem("eduai_token", token)
+    FE -> FE : set({token, user}) → redirect /courses
+end
+
+== Hydratation (/me) ==
+FE -> API : GET /api/auth/me  Authorization: Bearer {token}
+API -> SA : get_current_user(token) → decode_token()
+alt Token invalide / expiré
+    API --> FE : 401 → logout() + localStorage.removeItem
+else
+    API -> DB : users.findOne({_id: user_id})
+    API --> FE : 200 {id,name,email,role,plan}
+    FE -> FE : set({token, user}) → affiche page demandée
+end
+
+== Mot de passe oublié ==
+U -> FE : forgot-password(email)
+FE -> API : POST /api/auth/forgot-password {email}
+API -> DB : users.findOne({email})
+note right : Anti-énumération : toujours 200\nmême si email inconnu
+API -> DBR : password_resets.update_many({email,used:false},{used:true})
+alt Email trouvé
+    API -> DBR : password_resets.insertOne({user_id, email, token,\nexpires_at:+1h, used:false})
+end
+API --> FE : 200 {message, reset_link}
+
+== Réinitialisation ==
+U -> FE : reset-password(token, new_password)
+FE -> API : POST /api/auth/reset-password {token, new_password}
+API -> DBR : password_resets.findOne({token, used:false, expires_at>now})
+alt Token invalide / expiré
+    API --> FE : 400 "Token invalide ou expiré"
+else
+    API -> SA : hash_password(new_password)
+    API -> DB : users.updateOne({_id: user_id}, {password_hash})
+    API -> DBR : password_resets.updateOne({token}, {used:true})
+    API --> FE : 200 "Mot de passe réinitialisé"
+end
+
+@enduml

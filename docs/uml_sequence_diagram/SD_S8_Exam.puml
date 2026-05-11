@@ -1,0 +1,54 @@
+﻿@startuml SD_S8_Exam
+!theme plain
+title SD_S8 – Examen Simulé
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+
+actor Utilisateur as U
+participant "Frontend\n(ExamPage)" as FE
+participant "FastAPI\n/api/exam" as API
+participant "MongoDB\ndb.courses/chunks/exams" as DB
+participant "LLM Exam\n(Groq/Ollama)" as LLM
+
+== Démarrage ==
+U -> FE : Configure (num_questions=15, time_limit=20min)
+FE -> API : POST /api/exam/start\n{course_id, num_questions, time_limit_minutes}
+API -> DB : courses.findOne({_id: course_id, user_id})
+alt Cours non trouvé
+    API --> FE : 404
+else
+    API -> DB : chunks.find({course_id}) → chunks[]
+    API -> LLM : generate_exam_questions(chunks, count)
+    LLM --> API : [{question, options[4], correct_index, explanation, difficulty}]
+    API -> DB : exams.insertOne({user_id, course_id, questions,\ntime_limit_minutes, status:"in_progress", started_at})
+    API --> FE : 200 ExamResponse{exam_id, course_name,\nquestions[sans correct_index], time_limit_minutes}
+    note right : correct_index exclu de la réponse\n(sécurité anti-triche)
+end
+
+== Déroulement ==
+FE -> FE : Countdown timer + navigation questions
+U -> FE : Sélectionne réponses (auto-submit si timeout)
+
+== Soumission ==
+U -> FE : Clic "Soumettre"
+FE -> API : POST /api/exam/submit\n{exam_id, answers:[int], time_spent_seconds}
+API -> DB : exams.findOne({_id: exam_id, user_id})
+alt Examen non trouvé
+    API --> FE : 404
+else Déjà soumis
+    API --> FE : 400 "Examen déjà soumis"
+else
+    API -> API : score = count(answers[i] == correct_index[i])\npercentage = score/total*100\ngrade: >=90→A, >=80→B, >=70→C, >=60→D, <60→F\npassed = percentage >= 60
+    API -> DB : exams.updateOne({_id}, {status:"submitted", score,\npercentage, grade, passed, submitted_at})
+    API -> DB : quiz_results.insertOne({user_id, course_id, type:"exam",\nscore, total, percentage, submitted_at})
+    API -> DB : study_activity.update_one({user_id, date}, {active:True}, upsert=True)
+    API --> FE : 200 ExamResult{score, total, percentage, grade, passed, details[]}
+    FE -> FE : Affiche ExamResult (grade, score %, réponses corrigées)
+end
+
+== Historique ==
+FE -> API : GET /api/exam/history
+API -> DB : exams.find({user_id, status:"submitted"}).sort(-submitted_at).limit(50)
+API --> FE : [ExamHistoryEntry{exam_id, course_name, score, grade, passed, submitted_at}]
+
+@enduml

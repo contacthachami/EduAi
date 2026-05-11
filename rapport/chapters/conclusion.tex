@@ -1,0 +1,31 @@
+% ══════════════════════════════════════════════════════════════════════════════
+%  CONCLUSION GÉNÉRALE
+% ══════════════════════════════════════════════════════════════════════════════
+
+L'objectif de ce projet était de concevoir et réaliser \textbf{EduAI}, une plateforme SaaS d'apprentissage qui s'appuie sur le NLP et l'IA générative pour aider les étudiants à mieux exploiter leurs cours PDF.
+
+\paragraph{Bilan technique.}
+Au terme de ce travail, j'ai abouti à une application complète et fonctionnelle, qui intègre :
+\begin{itemize}
+  \item un pipeline RAG (Retrieval-Augmented Generation) combinant des embeddings multilingues (MiniLM-L12-v2), une indexation vectorielle (FAISS) et une génération via LLM (Llama 3.3 70B sur Groq) ;
+  \item un système de résumés pédagogiques structurés par chapitre ;
+  \item des quiz interactifs et des flashcards avec répétition espacée (algorithme SM-2) ;
+  \item un mode examen chronométré avec évaluation automatique ;
+  \item une architecture microservices conteneurisée (Docker), reposant sur un backend FastAPI asynchrone et un frontend Next.js moderne.
+\end{itemize}
+
+\paragraph{Bilan fonctionnel.}
+La plateforme couvre les neuf modules fonctionnels prévus dans le cahier des charges. Le modèle freemium est pensé pour le marché marocain, et l'ensemble des modules a été testé avec de vrais supports de cours universitaires.
+
+\paragraph{Apports personnels.}
+Ce projet m'a permis de développer des compétences dans plusieurs domaines :
+\begin{itemize}
+  \item le développement full-stack (Python / TypeScript) ;
+  \item l'architecture de systèmes distribués et conteneurisés ;
+  \item le NLP appliqué : embeddings, recherche sémantique et prompt engineering ;
+  \item la méthodologie Agile et la gestion de projet technique ;
+  \item la modélisation UML et la conception de bases de données NoSQL.
+\end{itemize}
+
+\paragraph{Perspectives.}
+EduAI est aujourd'hui une base fonctionnelle qui peut évoluer vers un vrai produit commercial. Les prochaines étapes prévues sont le développement d'une application mobile, l'intégration de moyens de paiement locaux (CMI, Payzone) et une offre B2B pour les établissements d'enseignement supérieur. Le programme Maroc Digital 2030 crée un contexte favorable pour ce type de solution dans le marché EdTech national et africain.

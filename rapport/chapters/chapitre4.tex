@@ -1,0 +1,189 @@
+% ══════════════════════════════════════════════════════════════════════════════
+%  CHAPITRE 4 — RÉALISATION
+% ══════════════════════════════════════════════════════════════════════════════
+
+\section{Introduction}
+
+Ce chapitre décrit la réalisation concrète de la plateforme : l'environnement de développement utilisé, les choix technologiques, les interfaces développées, ainsi que les tests effectués. Les captures d'écran sont en \textbf{Annexe~D}.
+
+% ──────────────────────────────────────────────────────────────────────────────
+\section{Environnement de développement}
+
+Le tableau~\ref{tab:env-dev} récapitule les outils constituant l'environnement de développement utilisé pour la réalisation du projet :
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{llX}
+\toprule
+\rowcolor{eduai-primary}
+\thead{Outil} & \thead{Version} & \thead{Usage} \\
+\midrule
+VS Code       & 1.90+    & Éditeur de code principal \\
+Python        & 3.11     & Backend et services NLP \\
+Node.js       & 20.17+   & Serveur frontend (Next.js) \\
+Docker        & 24+      & Conteneurisation des services \\
+Docker Compose& 2.x      & Orchestration multi-conteneurs \\
+MongoDB Compass & 1.40+  & Administration de la base de données \\
+Git           & 2.40+    & Gestion de versions \\
+Postman       & 11+      & Tests manuels de l'API REST \\
+\bottomrule
+\end{tabularx}
+\caption{Environnement de développement}
+\label{tab:env-dev}
+\end{table}
+
+% ──────────────────────────────────────────────────────────────────────────────
+\section{Technologies et frameworks}
+
+Cette section présente les principales technologies et bibliothèques utilisées pour le développement de la plateforme.
+
+\subsection{Backend — FastAPI (Python)}
+
+Le tableau~\ref{tab:deps-backend} liste les principales dépendances du serveur backend :
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{llX}
+\toprule
+\rowcolor{eduai-primary}
+\thead{Bibliothèque} & \thead{Version} & \thead{Rôle} \\
+\midrule
+FastAPI           & 0.115+ & Framework API REST asynchrone \\
+Uvicorn           & 0.30+  & Serveur ASGI haute performance \\
+Motor             & 3.6+   & Driver MongoDB asynchrone \\
+Pydantic          & 2.x    & Validation et sérialisation des données \\
+PyJWT             & 2.9+   & Génération et vérification JWT \\
+Passlib[bcrypt]   & 1.7+   & Hachage sécurisé des mots de passe \\
+PyMuPDF (fitz)    & 1.24+  & Extraction de texte des PDF \\
+sentence-transformers & 3.0+ & Embeddings multilingues (MiniLM) \\
+FAISS-cpu         & 1.8+   & Index vectoriel pour recherche sémantique \\
+spaCy             & 3.7+   & NLP : tokenisation, segmentation \\
+httpx             & 0.27+  & Client HTTP asynchrone (Groq API) \\
+\bottomrule
+\end{tabularx}
+\caption{Principales dépendances backend}
+\label{tab:deps-backend}
+\end{table}
+
+\subsection{Frontend — Next.js (React / TypeScript)}
+
+Le tableau~\ref{tab:deps-frontend} présente les bibliothèques utilisées côté frontend :
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{llX}
+\toprule
+\rowcolor{eduai-primary}
+\thead{Bibliothèque} & \thead{Version} & \thead{Rôle} \\
+\midrule
+Next.js          & 14.2    & Framework React avec SSR \\
+React            & 18.3    & Bibliothèque UI \\
+TypeScript       & 5.6     & Typage statique \\
+Tailwind CSS     & 3.4     & Utilitaire CSS responsive \\
+Zustand          & 4.5     & Gestion d'état léger \\
+Axios            & 1.7     & Client HTTP \\
+ReactFlow        & 11.11   & Visualisation de cartes mentales \\
+Recharts         & 2.12    & Graphiques (activité, scores) \\
+Framer Motion    & 11.11   & Animations et transitions \\
+react-markdown   & 9.0     & Rendu Markdown des réponses LLM \\
+react-dropzone   & 14.2    & Upload drag \& drop \\
+\bottomrule
+\end{tabularx}
+\caption{Principales dépendances frontend}
+\label{tab:deps-frontend}
+\end{table}
+
+\subsection{Services d'intelligence artificielle}
+
+Le tableau~\ref{tab:services-ia} décrit les modèles et services d'IA intégrés dans le pipeline de traitement :
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\rowcolor{eduai-primary}
+\thead{Service} & \thead{Description} \\
+\midrule
+Groq Cloud (Llama 3.3 70B) & LLM principal : génération de résumés, quiz, flashcards, réponses Q\&A \\
+paraphrase-multilingual-MiniLM-L12-v2 & Modèle d'embeddings (384 dimensions, support 50+ langues) \\
+CamemBERT (fquad-piaf) & Modèle extractif de QA en français (fallback) \\
+mT5 (XLSum) & Résumé extractif multilingue (fallback) \\
+FAISS IndexFlatIP & Recherche par similarité cosinus (brute-force, exact) \\
+\bottomrule
+\end{tabularx}
+\caption{Services d'intelligence artificielle}
+\label{tab:services-ia}
+\end{table}
+
+% ──────────────────────────────────────────────────────────────────────────────
+\section{Interfaces utilisateur}
+
+La plateforme EduAI propose une interface web moderne et responsive, développée avec Next.js 14 et Tailwind CSS. L'interface comprend onze vues principales :
+
+\begin{enumerate}
+  \item \textbf{Page d'accueil} — présentation de la plateforme avec appel à l'action (CTA) ;
+  \item \textbf{Authentification} — formulaires d'inscription et de connexion ;
+  \item \textbf{Tableau de bord} — liste des cours de l'utilisateur sous forme de cartes ;
+  \item \textbf{Upload} — interface de glisser-déposer pour l'import de fichiers PDF ;
+  \item \textbf{Questions-Réponses} — chat conversationnel avec streaming des réponses ;
+  \item \textbf{Résumés} — affichage structuré par chapitre avec concepts clés ;
+  \item \textbf{Quiz} — QCM interactif avec calcul de score en temps réel ;
+  \item \textbf{Flashcards} — cartes de révision avec évaluation de la qualité de réponse (SM-2) ;
+  \item \textbf{Carte mentale} — visualisation interactive via ReactFlow ;
+  \item \textbf{Examen} — mode examen chronométré avec configuration personnalisable ;
+  \item \textbf{Administration} — panneau de gestion des utilisateurs et des statistiques.
+\end{enumerate}
+
+L'ensemble des captures d'écran illustrant ces interfaces est présenté en \textbf{Annexe~D}.
+
+% ──────────────────────────────────────────────────────────────────────────────
+\section{Tests et validation}
+
+\subsection{Stratégie de test}
+
+La validation du système repose sur plusieurs niveaux complémentaires, résumés dans le tableau~\ref{tab:tests} :
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{llX}
+\toprule
+\rowcolor{eduai-primary}
+\thead{Niveau} & \thead{Outil} & \thead{Couverture} \\
+\midrule
+Unitaire       & pytest        & Services (chunker, embedder, retriever) \\
+Intégration    & pytest + httpx & Endpoints API complets \\
+E2E LLM        & Scripts custom & Chaîne complète : upload → embed → Q\&A → résumé \\
+Manuel         & Postman       & Scénarios utilisateur réels \\
+Frontend       & Navigation    & Parcours utilisateur complets \\
+\bottomrule
+\end{tabularx}
+\caption{Stratégie de test}
+\label{tab:tests}
+\end{table}
+
+\subsection{Résultats des tests}
+
+Le tableau~\ref{tab:test-results} présente les résultats de validation par module fonctionnel. L'ensemble des modules a été validé avec succès :
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{lcX}
+\toprule
+\rowcolor{eduai-primary}
+\thead{Module} & \thead{Statut} & \thead{Observations} \\
+\midrule
+Authentification     & \textcolor{green!60!black}{\checkmark} & JWT, bcrypt, rôles fonctionnels \\
+Upload \& Indexation & \textcolor{green!60!black}{\checkmark} & PDF → chunks → FAISS opérationnel \\
+Q\&A (RAG)           & \textcolor{green!60!black}{\checkmark} & Réponses pertinentes, streaming OK \\
+Résumés              & \textcolor{green!60!black}{\checkmark} & Génération multi-chapitre, cache OK \\
+Quiz                 & \textcolor{green!60!black}{\checkmark} & Génération, soumission, scoring OK \\
+Flashcards SM-2      & \textcolor{green!60!black}{\checkmark} & Intervalles et ease\_factor corrects \\
+Examen               & \textcolor{green!60!black}{\checkmark} & Timer, scoring, notes A-F OK \\
+Admin                & \textcolor{green!60!black}{\checkmark} & CRUD utilisateurs, protection rôle \\
+\bottomrule
+\end{tabularx}
+\caption{Résultats des tests par module}
+\label{tab:test-results}
+\end{table}

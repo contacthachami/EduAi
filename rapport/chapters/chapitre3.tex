@@ -1,0 +1,276 @@
+% ══════════════════════════════════════════════════════════════════════════════
+%  CHAPITRE 3 — CONCEPTION
+% ══════════════════════════════════════════════════════════════════════════════
+
+\section{Introduction}
+
+Ce chapitre présente la conception technique d'EduAI : l'architecture retenue, le pipeline NLP/IA, le modèle de données et la conception de l'API REST. Les diagrammes de séquence sont disponibles en \textbf{Annexe~B}.
+
+% ──────────────────────────────────────────────────────────────────────────────
+\section{Architecture globale du système}
+
+\subsection{Vue d'ensemble}
+
+EduAI repose sur une architecture \textbf{trois-tiers} conteneurisée, avec une séparation claire entre la présentation, la logique métier et les données :
+
+\begin{figure}[H]
+\centering
+\fbox{\parbox{0.92\textwidth}{
+\centering
+\begin{tabular}{ccc}
+\textbf{Couche Présentation} & \textbf{Couche Métier} & \textbf{Couche Données} \\
+\midrule
+Next.js (React/TS) & FastAPI (Python) & MongoDB \\
+Tailwind CSS & Services NLP/IA & FAISS Indexes \\
+Port 3000 & Port 8000 & Port 27017 \\
+\end{tabular}
+\vspace{0.5cm}
+
+\textit{Communication : API REST (JSON) + SSE (streaming)}
+}}
+\caption{Architecture trois-tiers d'EduAI}
+\label{fig:archi-global}
+\end{figure}
+
+\subsection{Architecture détaillée}
+
+Le tableau~\ref{tab:archi-detail} présente la décomposition détaillée de chaque couche, avec les technologies retenues et les responsabilités associées :
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{>{\bfseries}p{2.4cm} p{4.6cm} X}
+\toprule
+\rowcolor{eduai-primary}
+\thead{Couche} & \thead{Composant} & \thead{Responsabilité} \\
+\midrule
+\multirow{3}{*}{Frontend}
+  & Next.js 14            & Routage, SSR, pages dynamiques \\
+  & React 18 + TypeScript & Composants UI, gestion d'état \\
+  & Tailwind CSS          & Styling responsive, dark/light mode \\
+\midrule
+\multirow{5}{*}{Backend}
+  & FastAPI               & Framework API REST asynchrone \\
+  & Routers (10 modules)  & Endpoints : auth, courses, qa, summary, quiz, flashcards, mindmap, exam, export, admin \\
+  & Services              & Logique métier : chunker, embedder, retriever, LLM client, quiz generator, summarizer \\
+  & Database Layer        & Motor (async MongoDB driver), opérations CRUD \\
+  & Pydantic v2           & Validation des entrées/sorties (schémas) \\
+\midrule
+\multirow{3}{*}{Données}
+  & MongoDB               & Documents : users, courses, chunks, summaries, quizzes, flashcards, exams\dots{} (15 collections) \\
+  & FAISS                 & Index vectoriels par cours (similarité cosinus) \\
+  & Models Cache          & Modèles HuggingFace pré-téléchargés (offline) \\
+\midrule
+\multirow{2}{*}{IA / LLM}
+  & Groq Cloud            & LLM Llama 3.3 70B (inférence rapide) \\
+  & HuggingFace           & Embeddings (MiniLM), QA (CamemBERT), Summarizer (mT5) \\
+\bottomrule
+\end{tabularx}
+\caption{Architecture technique détaillée}
+\label{tab:archi-detail}
+\end{table}
+
+% ──────────────────────────────────────────────────────────────────────────────
+\section{Conception du pipeline NLP / Intelligence Artificielle}
+
+Le c\oe{}ur technique d'EduAI est un pipeline NLP qui part de l'extraction du texte, passe par la vectorisation, et aboutit à la génération augmentée par la récupération (RAG).
+
+\subsection{Pipeline de traitement du cours (Upload)}
+
+Lors de l'upload d'un fichier PDF, le système exécute automatiquement une séquence de cinq étapes de traitement :
+
+\begin{figure}[H]
+\centering
+\fbox{\parbox{0.92\textwidth}{
+\centering
+\small
+\textbf{PDF} $\xrightarrow{1}$ \textbf{Extraction} (PyMuPDF) $\xrightarrow{2}$ \textbf{Chunking} (400 tokens, overlap 50)
+
+$\downarrow$
+
+\textbf{Chunks[]} $\xrightarrow{3}$ \textbf{Embeddings} (MiniLM-L12-v2, 384d) $\xrightarrow{4}$ \textbf{FAISS IndexFlatIP}
+
+$\downarrow$
+
+\textbf{Pré-génération} : Summary (LLM) + Quiz (LLM) en arrière-plan
+}}
+\caption{Pipeline de traitement à l'upload d'un cours}
+\label{fig:pipeline-upload}
+\end{figure}
+
+Le détail de chaque étape est consigné dans le tableau~\ref{tab:pipeline-steps} :
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{clXl}
+\toprule
+\rowcolor{eduai-primary}
+\thead{\#} & \thead{Étape} & \thead{Description} & \thead{Outil} \\
+\midrule
+1 & Extraction PDF & Extraction page par page du texte brut & PyMuPDF (fitz) \\
+2 & Chunking & Découpage en segments de 400 tokens avec un chevauchement de 50 & Chunker personnalisé \\
+3 & Embeddings & Vectorisation des chunks (384 dimensions) & sentence-transformers \\
+4 & Indexation & Construction de l'index vectoriel & FAISS (IndexFlatIP) \\
+5 & Pré-génération & Résumé et quiz en arrière-plan (asyncio) & Groq LLM \\
+\bottomrule
+\end{tabularx}
+\caption{Étapes du pipeline de traitement}
+\label{tab:pipeline-steps}
+\end{table}
+
+\subsection{Pipeline RAG (Retrieval-Augmented Generation)}
+
+Le système de questions-réponses s'appuie sur un pipeline RAG qui garantit la fidélité des réponses au contenu spécifique du cours :
+
+\begin{figure}[H]
+\centering
+\fbox{\parbox{0.92\textwidth}{
+\centering
+\small
+\textbf{Question utilisateur}
+
+$\downarrow$ \textit{(1) Embedding de la question}
+
+\textbf{Vecteur 384d} $\xrightarrow{(2)}$ \textbf{FAISS search} (top-$k$=3) $\rightarrow$ \textbf{Chunks pertinents}
+
+$\downarrow$ \textit{(3) Construction du prompt}
+
+\textbf{Contexte + Question + Historique} $\xrightarrow{(4)}$ \textbf{Groq LLM} (Llama 3.3 70B)
+
+$\downarrow$ \textit{(5) Streaming SSE}
+
+\textbf{Réponse contextuelle} $\rightarrow$ \textbf{Utilisateur}
+}}
+\caption{Pipeline RAG — Questions-Réponses}
+\label{fig:pipeline-rag}
+\end{figure}
+
+\subsection{Pipeline de génération de résumés}
+
+\begin{figure}[H]
+\centering
+\fbox{\parbox{0.92\textwidth}{
+\centering
+\small
+\textbf{Cours (chunks par chapitre)}
+
+$\downarrow$ \textit{Pour chaque chapitre :}
+
+\textbf{Texte du chapitre} (tronqué à 6000 car.) $\xrightarrow{}$ \textbf{LLM Prompt}
+
+$\downarrow$
+
+\textbf{Résumé narratif} + \textbf{Concepts clés} + \textbf{Points essentiels}
+
+$\downarrow$ \textit{Cache MongoDB (version v4-groq)}
+
+\textbf{Résumé structuré} $\rightarrow$ \textbf{Affichage par chapitre}
+}}
+\caption{Pipeline de génération de résumés}
+\label{fig:pipeline-summary}
+\end{figure}
+
+\subsection{Algorithme SM-2 (Flashcards)}
+
+L'algorithme SuperMemo 2 gère la répétition espacée des flashcards :
+
+\begin{table}[H]
+\centering
+\begin{tabular}{ll}
+\toprule
+\rowcolor{eduai-primary}
+\thead{Paramètre} & \thead{Formule / Valeur} \\
+\midrule
+\texttt{ease\_factor} & $EF' = EF + (0.1 - (5-q) \times (0.08 + (5-q) \times 0.02))$ \\
+\texttt{interval} & Si $n=1$ : 1j, si $n=2$ : 6j, sinon : $I_{n-1} \times EF$ \\
+\texttt{quality} (q) & 0 à 5 (0=oubli total, 5=parfait) \\
+\texttt{reset} & Si $q < 3$ : repetitions $\leftarrow$ 0, interval $\leftarrow$ 1 \\
+\texttt{EF minimum} & 1.3 (plancher pour éviter des intervalles trop courts) \\
+\bottomrule
+\end{tabular}
+\caption{Paramètres de l'algorithme SM-2}
+\label{tab:sm2}
+\end{table}
+
+% ──────────────────────────────────────────────────────────────────────────────
+\section{Modèle Logique de Données (MLD)}
+
+Le modèle logique de données représente la structure des 15 collections MongoDB utilisées par EduAI. Les diagrammes MLD complets sont présentés en \textbf{Annexe~C}. Cette section décrit l'organisation logique des collections, réparties en trois groupes fonctionnels.
+
+\subsection{Groupe 1 — Authentification et gestion des cours}
+
+Ce premier groupe couvre les collections fondamentales liées à la gestion des utilisateurs et des contenus pédagogiques :
+
+\begin{itemize}
+  \item \texttt{users} — comptes utilisateurs (email unique, rôle, plan, paramètres de personnalisation) ;
+  \item \texttt{password\_resets} — tokens de réinitialisation de mot de passe (avec date d'expiration) ;
+  \item \texttt{courses} — métadonnées des cours uploadés (nom, fichier, liste des chapitres détectés, statut de traitement) ;
+  \item \texttt{chunks} — segments de texte indexés (contenu textuel, numéro de page, chapitre, position dans l'index).
+\end{itemize}
+
+\subsection{Groupe 2 — Résumés, Q\&A, Quiz et Flashcards}
+
+Ce groupe regroupe les collections relatives aux outils d'apprentissage actif :
+
+\begin{itemize}
+  \item \texttt{summaries} — cache des résumés générés par le LLM (version, contenu par chapitre) ;
+  \item \texttt{qa\_sessions} — sessions de questions-réponses (historique des échanges) ;
+  \item \texttt{quizzes} — quiz générés automatiquement par le LLM ;
+  \item \texttt{quiz\_cache} — cache des quiz par cours pour optimiser les temps de réponse ;
+  \item \texttt{quiz\_results} — résultats des quiz soumis par les utilisateurs ;
+  \item \texttt{flashcards} — fiches de révision avec les paramètres de l'algorithme SM-2 ;
+  \item \texttt{flashcard\_reviews} — journal des sessions de révision.
+\end{itemize}
+
+\subsection{Groupe 3 — Carte mentale, examens et activité}
+
+Ce dernier groupe couvre les collections relatives aux fonctionnalités avancées et au suivi de progression :
+
+\begin{itemize}
+  \item \texttt{mindmaps} — cartes mentales générées (nœuds et arêtes) ;
+  \item \texttt{exams} — examens simulés (configuration, résultats, notes attribuées) ;
+  \item \texttt{exam\_sessions} — sessions d'examen par cours ;
+  \item \texttt{study\_activity} — activité journalière de l'utilisateur (statistiques de progression).
+\end{itemize}
+
+% ──────────────────────────────────────────────────────────────────────────────
+\section{Conception de l'API REST}
+
+\subsection{Organisation des endpoints}
+
+L'API est structurée en dix routeurs spécialisés, chacun encapsulant un domaine fonctionnel distinct :
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{llX}
+\toprule
+\rowcolor{eduai-primary}
+\thead{Routeur} & \thead{Préfixe} & \thead{Endpoints principaux} \\
+\midrule
+\texttt{auth}       & \texttt{/api/auth}       & register, login, me, forgot-password, reset-password \\
+\texttt{courses}    & \texttt{/api/courses}    & upload, list, get, delete, status \\
+\texttt{summary}    & \texttt{/api/summary}    & get (par cours), export PDF \\
+\texttt{qa}         & \texttt{/api/qa}         & ask (streaming SSE), history \\
+\texttt{quiz}       & \texttt{/api/quiz}       & generate, submit, results, regenerate \\
+\texttt{flashcards} & \texttt{/api/flashcards} & generate, list, review, export PDF \\
+\texttt{mindmap}    & \texttt{/api/mindmap}    & generate, get \\
+\texttt{exam}       & \texttt{/api/exam}       & start, submit, history \\
+\texttt{export}     & \texttt{/api/export}     & PDF (résumés, flashcards) \\
+\texttt{admin}      & \texttt{/api/admin}      & users CRUD, stats, promote, delete \\
+\bottomrule
+\end{tabularx}
+\caption{Organisation des routeurs API}
+\label{tab:api-routes}
+\end{table}
+
+\subsection{Sécurisation de l'API}
+
+La sécurisation de l'API repose sur plusieurs mécanismes complémentaires :
+
+\begin{itemize}
+  \item \textbf{Authentification :} token JWT Bearer (algorithme HS256, expiration de 7 jours) ;
+  \item \textbf{Autorisation :} middleware \texttt{get\_current\_user} pour tous les endpoints protégés, et \texttt{require\_admin} pour le panneau d'administration ;
+  \item \textbf{Validation des données :} Pydantic v2 pour la validation stricte de toutes les entrées et sorties ;
+  \item \textbf{CORS :} origines autorisées configurables via les variables d'environnement ;
+  \item \textbf{Limitation de débit :} implicite via l'API Groq pour les requêtes LLM.
+\end{itemize}

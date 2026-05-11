@@ -1,0 +1,121 @@
+@startuml MLD_2_Quiz_Flashcards
+!theme plain
+title MLD 2/3 – Résumés · Q&A · Quiz · Flashcards · EduAI SaaS
+hide methods
+hide circle
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+skinparam entityBackgroundColor #FFFDE7
+skinparam entityBorderColor #F9A825
+
+skinparam entity {
+  BackgroundColor<<ref>> #ECEFF1
+  BorderColor<<ref>> #90A4AE
+}
+
+' ═══════════════════════════════════════════════════════
+'  RÉFÉRENCES (définies dans MLD 1/3)
+' ═══════════════════════════════════════════════════════
+entity "users" <<ref>> as U {
+  * _id : ObjectId <<PK>>
+}
+
+entity "courses" <<ref>> as C {
+  * _id : ObjectId <<PK>>
+}
+
+' ═══════════════════════════════════════════════════════
+'  RÉSUMÉS & Q&A
+' ═══════════════════════════════════════════════════════
+entity "summaries" as S {
+  * _id           : ObjectId <<PK>>
+  --
+  * course_id     : String <<FK→courses>>
+  * cache_version : String
+  * created_at    : DateTime
+  + chapters      : Object[]
+}
+
+entity "qa_sessions" as QA {
+  * _id        : ObjectId <<PK>>
+  --
+  * session_id : UUID [unique]
+  * course_id  : String <<FK→courses>>
+  + exchanges  : Object[]
+}
+
+' ═══════════════════════════════════════════════════════
+'  QUIZ
+' ═══════════════════════════════════════════════════════
+entity "quizzes" as Q {
+  * _id       : ObjectId <<PK>>
+  --
+  * quiz_id   : UUID [unique]
+  * course_id : String <<FK→courses>>
+  + questions : Object[]
+}
+
+entity "quiz_cache" as QC {
+  * _id       : ObjectId <<PK>>
+  --
+  * course_id  : String <<FK→courses>>
+  * quiz_id    : String <<FK→quizzes.quiz_id>>
+  + questions  : Object[]
+  * created_at : DateTime
+}
+
+entity "quiz_results" as QR {
+  * _id          : ObjectId <<PK>>
+  --
+  * user_id      : String <<FK→users>>
+  * course_id    : String <<FK→courses>>
+  * type         : String
+  * score        : Int
+  * total        : Int
+  * percentage   : Float
+  * submitted_at : DateTime
+}
+
+' ═══════════════════════════════════════════════════════
+'  FLASHCARDS (Algorithme SM-2)
+' ═══════════════════════════════════════════════════════
+entity "flashcards" as F {
+  * _id         : ObjectId <<PK>>
+  --
+  * user_id     : String <<FK→users>>
+  * course_id   : String <<FK→courses>>
+  * front       : String
+  * back        : String
+  * difficulty  : "facile" | "moyen" | "difficile"
+  * interval    : Int
+  * repetitions : Int
+  * ease_factor : Float
+  * next_review : DateTime
+  * created_at  : DateTime
+}
+
+entity "flashcard_reviews" as FR {
+  * _id          : ObjectId <<PK>>
+  --
+  * flashcard_id : String <<FK→flashcards>>
+  * user_id      : String <<FK→users>>
+  * course_id    : String <<FK→courses>>
+  * quality      : Int (0-5)
+  * reviewed_at  : DateTime
+}
+
+' ═══════════════════════════════════════════════════════
+'  RELATIONS
+' ═══════════════════════════════════════════════════════
+C  ||--o| S   : "résumé"
+C  ||--o{ QA  : "sessions Q&A"
+C  ||--o{ Q   : "génère quizzes"
+C  ||--o| QC  : "cache quiz"
+QC }o--|| Q   : "référence"
+U  ||--o{ QR  : "résultats quiz"
+C  ||--o{ QR  : "évaluations"
+U  ||--o{ F   : "crée"
+C  ||--o{ F   : "associé à"
+F  ||--o{ FR  : "log SM-2"
+
+@enduml

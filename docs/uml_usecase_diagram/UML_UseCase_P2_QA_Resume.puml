@@ -1,0 +1,123 @@
+@startuml EduAI_UseCase_Page2
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam actorStyle awesome
+
+skinparam usecase {
+  BackgroundColor #E8F4FD
+  BorderColor #2E86C1
+  FontSize 11
+  FontName Arial
+}
+skinparam actor {
+  BackgroundColor #D5F5E3
+  BorderColor #1E8449
+  FontSize 12
+  FontName Arial
+}
+skinparam package {
+  BackgroundColor #FEF9E7
+  BorderColor #D4AC0D
+  FontSize 13
+  FontName Arial Bold
+}
+skinparam arrow {
+  Color #2E86C1
+  FontSize 10
+}
+
+title **EduAI — Cas d'Utilisation · Page 2/4**\n**Questions-Réponses (RAG) & Résumés Pédagogiques**
+
+left to right direction
+
+' ── Acteurs ──────────────────────────────────────────────────
+actor "Étudiant" as Student
+actor "Groq LLM\n(llama-3.3-70b)" as LLM #LightBlue
+actor "MongoDB" as DB #LightYellow
+actor "FAISS\n(Index vectoriel)" as FAISS #LightPink
+
+' ── Paquet 3 : Questions-Réponses (RAG) ──────────────────────
+package "3. Questions-Réponses (RAG)" {
+  usecase "Poser une question\n(POST /qa/ask)" as UC_Ask
+  usecase "Réponse en streaming\n(POST /qa/ask/stream — SSE)" as UC_Stream
+  usecase "Consulter historique Q&A\n(GET /qa/history/{session_id})" as UC_QAHistory
+  usecase "Encoder la question\n(MiniLM · 384-d)" as UC_EmbedQ
+  usecase "Recherche sémantique\n(FAISS top-k · seuil 0.30)" as UC_Search
+  usecase "Générer réponse RAG\n(Groq LLM · historique 3 tours)" as UC_Answer
+  usecase "Réponse extractive\n(CamemBERT fallback)" as UC_Fallback
+}
+
+' ── Paquet 4 : Résumés Pédagogiques ─────────────────────────
+package "4. Résumés Pédagogiques" {
+  usecase "Générer résumé\n(GET /summary/{course_id})" as UC_Summary
+  usecase "Analyse NLP\n(spaCy · NER · POS · lemmatisation)" as UC_Spacy
+  usecase "Résumé extractif\n(TextRank graph-based)" as UC_TextRank
+  usecase "Fiche pédagogique\n(Groq LLM · par chapitre)" as UC_SumLLM
+  usecase "Exporter résumé PDF\n(GET /export/summary/{course_id})" as UC_Export
+}
+
+' ── Relations Étudiant → UCs ─────────────────────────────────
+Student --> UC_Ask
+Student --> UC_Stream
+Student --> UC_QAHistory
+Student --> UC_Summary
+Student --> UC_Export
+
+' ── Include / Extend ─────────────────────────────────────────
+' UC_Ask et UC_Stream sont deux endpoints indépendants ;
+' ils partagent le même pipeline RAG sous-jacent.
+UC_Ask    ..> UC_EmbedQ  : <<include>>
+UC_Ask    ..> UC_Search  : <<include>>
+UC_Ask    ..> UC_Answer  : <<include>>
+
+UC_Stream ..> UC_EmbedQ  : <<include>>
+UC_Stream ..> UC_Search  : <<include>>
+UC_Stream ..> UC_Answer  : <<include>>
+
+UC_Answer ..> UC_Fallback : <<extend>>\n[LLM indisponible]
+
+UC_Summary ..> UC_Spacy    : <<include>>
+UC_Spacy   ..> UC_TextRank : <<include>>
+UC_Summary ..> UC_SumLLM   : <<extend>>\n[LLM disponible]
+
+note right of UC_Ask
+  Pipeline RAG (non-streaming) :
+  1. Embed question → MiniLM 384-d
+  2. Search FAISS (top-k=3, seuil 0.30)
+  3. Inject context + historique (3 tours)
+  4. Appel Groq LLM (llama-3.3-70b)
+  Fallback CamemBERT si LLM indisponible
+end note
+
+note right of UC_Stream
+  Même pipeline RAG que UC_Ask
+  Résultat renvoyé token par token
+  via Server-Sent Events (SSE)
+end note
+
+note bottom of UC_QAHistory
+  Retourne les N derniers échanges
+  d'une session Q&A (session_id)
+  Stocké dans collection qa_sessions
+end note
+
+note bottom of UC_Summary
+  Résultat mis en cache MongoDB
+  Pipeline NLP affiché côté client :
+  spaCy → TextRank → LLM refine
+  Pré-généré en arrière-plan après upload
+end note
+
+' ── Relations systèmes externes ──────────────────────────────
+UC_Search  --> FAISS : load index + search top-k
+
+UC_Answer  --> LLM : prompt RAG (context + history)
+UC_SumLLM  --> LLM : refine_chapter()
+
+UC_Ask       --> DB : save qa_exchange (session_id)
+UC_Stream    --> DB : save qa_exchange (session_id)
+UC_QAHistory --> DB : find qa_session by session_id
+UC_Summary   --> DB : get chunks · cache summary
+UC_Export    --> DB : get cached summary
+
+@enduml

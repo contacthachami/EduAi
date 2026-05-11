@@ -1,0 +1,68 @@
+@startuml MLD_1_Auth_Cours
+!theme plain
+title MLD 1/3 – Authentification & Cours · EduAI SaaS
+hide methods
+hide circle
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+skinparam entityBackgroundColor #FFFDE7
+skinparam entityBorderColor #F9A825
+
+' ═══════════════════════════════════════════════════════
+'  UTILISATEURS
+' ═══════════════════════════════════════════════════════
+entity "users" as U {
+  * _id           : ObjectId <<PK>>
+  --
+  * email         : String [unique]
+  * name          : String
+  * password_hash : String
+  * role          : "user" | "admin"
+  * plan          : "free" | "pro"
+  * created_at    : DateTime
+  + settings      : { daily_goal_minutes, reminder_enabled }
+}
+
+entity "password_resets" as PR {
+  * _id        : ObjectId <<PK>>
+  --
+  * token      : String [unique]
+  * user_id    : String <<FK→users>>
+  * expires_at : DateTime
+  * used       : Boolean
+}
+
+' ═══════════════════════════════════════════════════════
+'  COURS & CONTENU
+' ═══════════════════════════════════════════════════════
+entity "courses" as C {
+  * _id          : ObjectId <<PK>>
+  --
+  * user_id      : String <<FK→users>>
+  * name         : String
+  * filename     : String
+  + chapters     : String[]
+  + chunks_count : Int
+  + pages        : Int
+  * status       : "processing" | "ready" | "error"
+  * created_at   : DateTime
+}
+
+entity "chunks" as CH {
+  * _id         : ObjectId <<PK>>
+  --
+  * course_id   : String <<FK→courses>>
+  * text        : String
+  * page        : Int
+  + chapter     : String
+  * chunk_index : Int
+}
+
+' ═══════════════════════════════════════════════════════
+'  RELATIONS
+' ═══════════════════════════════════════════════════════
+U  ||--o{ PR : "demande reset"
+U  ||--o{ C  : "possède"
+C  ||--|{ CH : "découpé en"
+
+@enduml

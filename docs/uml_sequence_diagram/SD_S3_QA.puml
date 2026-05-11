@@ -1,0 +1,54 @@
+﻿@startuml SD_S3_QA
+!theme plain
+title SD_S3 – Questions-Réponses (RAG + Streaming)
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+
+actor Utilisateur as U
+participant "Frontend\n(useChat)" as FE
+participant "FastAPI\n/api/qa" as API
+participant "MongoDB\ndb.courses/chunks/qa_sessions" as DB
+participant "Embedder\n+ FAISS" as RAG
+participant "LLM Client\n(Groq/Ollama)" as LLM
+participant "CamemBERT\n(QA fallback)" as QA
+
+== Streaming (/ask/stream) ==
+U -> FE : Saisit une question
+FE -> FE : Affiche typing indicator (isStreaming=true)
+FE -> API : POST /api/qa/ask/stream\n{course_id, question, session_id}
+API -> DB : courses.findOne({_id: course_id, user_id})
+alt Cours non trouvé
+    API --> FE : 404
+else
+    API -> DB : qa_sessions.find({session_id}) → historique (3 derniers tours)
+    API -> RAG : embed_query(question) → vector[384]
+    API -> RAG : FAISS.search(course_id, vector, k=3) → [{index, score}]
+    API -> DB : chunks.find({course_id}) → chunks[]
+    API -> API : _select_relevant(chunks, threshold=0.30)
+    alt LLM disponible
+        API -> LLM : chat_stream(system, question, contexts, history)
+        loop token par token
+            LLM --> API : token
+            API --> FE : SSE data:{token}
+        end
+        API --> FE : SSE data:{done, sources[], session_id}
+        FE -> FE : Affiche réponse + SourceCard[] (page, chapitre)
+    else LLM indisponible (LLMUnavailable)
+        alt Contexte pertinent trouvé (score >= 0.30)
+            API -> QA : answer_question(question, relevant_chunks)
+            QA --> API : {answer, confidence, sources}
+        else Aucun contexte
+            API -> API : message générique "Pas d'information pertinente..."
+        end
+        API --> FE : SSE data:{done, sources[]}
+        FE -> FE : Affiche réponse + SourceCard[]
+    end
+    API -> DB : qa_sessions.insertOne({session_id, course_id, question,\nanswer, confidence, sources, llm_used, timestamp})
+end
+
+== Historique ==
+FE -> API : GET /api/qa/history/{sessionId}
+API -> DB : qa_sessions.find({session_id})
+API --> FE : [{question, answer, sources, timestamp}]
+
+@enduml

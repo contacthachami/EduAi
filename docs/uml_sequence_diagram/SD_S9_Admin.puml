@@ -1,0 +1,74 @@
+﻿@startuml SD_S9_Admin
+!theme plain
+title SD_S9 – Administration
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+
+actor Admin as A
+participant "Frontend\n(AdminPage)" as FE
+participant "FastAPI\n/api/admin" as API
+participant "services.auth\n(require_admin)" as AUTH
+participant "MongoDB\ndb.users/courses/chunks/summaries/..." as DB
+
+== Accès & Guard ==
+A -> FE : /admin
+FE -> FE : useAuth() → user.role === "admin" ?
+alt Non admin / non authentifié
+    FE -> FE : redirect /courses ou /auth
+    note right: Garde frontend (client-side)
+end
+
+== Chargement Données ==
+FE -> API : GET /api/admin/users + GET /api/admin/stats
+API -> AUTH : require_admin(token) → vérifie db.users.role=="admin"
+alt Non admin
+    API --> FE : 403
+else
+    API -> DB : users.find().sort(-created_at) → users[]
+    loop chaque user
+        API -> DB : courses.countDocuments({user_id})
+    end
+    API -> DB : users.count() + courses.count() + chunks.count() +\nusers.count({role:"admin"})
+    API --> FE : [UserOut[]] + {total_users, total_courses, total_chunks, admin_count}
+    FE -> FE : Affiche tableau utilisateurs + stats dashboard
+end
+
+== Créer utilisateur ==
+A -> FE : Formulaire nouveau user
+FE -> API : POST /api/admin/users {name, email, password, role, plan}
+API -> AUTH : require_admin()
+API -> DB : users.findOne({email})
+alt Email pris
+    API --> FE : 409
+else
+    API -> DB : users.insertOne({name, email, password_hash, role, plan, created_at})
+    API --> FE : 201 UserOut
+end
+
+== Modifier utilisateur ==
+A -> FE : PUT modifier user
+FE -> API : PUT /api/admin/users/{userId} {name?, email?, password?, role?, plan?}
+API -> AUTH : require_admin()
+API -> DB : users.findOne({_id: user_id})
+API -> DB : users.updateOne({_id}, updates)
+API --> FE : 200 UserOut
+
+== Supprimer utilisateur ==
+A -> FE : DELETE user (confirmation)
+FE -> API : DELETE /api/admin/users/{userId}
+API -> AUTH : require_admin()
+alt Admin self-delete
+    API --> FE : 400 "Impossible de supprimer votre propre compte"
+else
+    API -> DB : courses.find({user_id}) → course_ids[]
+    loop chaque cours
+        API -> DB : chunks/summaries/quiz_cache/flashcards/exam_sessions\n.deleteMany({course_id})
+    end
+    API -> DB : courses.deleteMany({user_id})
+    API -> DB : password_resets.deleteMany({user_id})
+    API -> DB : users.deleteOne({_id})
+    API --> FE : 204 No Content
+    FE -> FE : Retire l'utilisateur du tableau
+end
+
+@enduml

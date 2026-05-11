@@ -1,0 +1,585 @@
+﻿This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex.fmt)
+ restricted \write18 enabled.
+entering extended mode
+(main.tex
+LaTeX2e <2025-11-01>
+L3 programming layer <2025-12-24>
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/base\report.cls
+Document Class: report 2025/01/22 v1.4n Standard LaTeX document class
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/base\size12.clo))
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/base\inputenc.sty)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/base\fontenc.sty)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/generic/babel\babel.sty
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/generic/babel\txtbabel.def)
+*************************************
+* Local config file bblopts.cfg used
+*
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/arabi\bblopts.cfg)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/generic/babel/locale/fr\babel-fr
+ench.tex)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/generic/babel-french\french.ldf
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/generic/babel-french\french3.ldf
+))) (C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/carlisle\scalefnt.sty)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/lm\lmodern.sty)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/geometry\geometry.sty
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/graphics\keyval.sty)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/generic/iftex\ifvtex.sty
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/generic/iftex\iftex.sty))
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/geometry\geometry.cfg))
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/setspace\setspace.sty)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/fancyhdr\fancyhdr.sty)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/titlesec\titlesec.sty)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/titlesec\titletoc.sty)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/graphics\graphicx.sty
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/graphics\graphics.sty
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/graphics\trig.sty)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/graphics-cfg\graphics.cfg)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/graphics-def\pdftex.def)))
+ (C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/xcolor\xcolor.sty
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/graphics-cfg\color.cfg)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/graphics\mathcolor.ltx))
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/colortbl\colortbl.sty
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/tools\array.sty))
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/float\float.sty)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/caption\subcaption.sty
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/caption\caption.sty
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/caption\caption3.sty)))
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/booktabs\booktabs.sty)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/tools\longtable.sty)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/multirow\multirow.sty)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/tools\tabularx.sty)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/enumitem\enumitem.sty)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/hyperref\hyperref.sty
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/kvsetkeys\kvsetkeys.sty)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/generic/kvdefinekeys\kvdefinekey
+s.sty)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/generic/pdfescape\pdfescape.sty
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/generic/ltxcmds\ltxcmds.sty)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/generic/pdftexcmds\pdftexcmds.st
+y
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/generic/infwarerr\infwarerr.sty)
+)) (C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/hycolor\hycolor.sty)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/hyperref\nameref.sty
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/refcount\refcount.sty)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/generic/gettitlestring\gettitles
+tring.sty
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/kvoptions\kvoptions.sty)))
+ (C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/etoolbox\etoolbox.sty)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/generic/stringenc\stringenc.sty)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/hyperref\pd1enc.def)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/generic/intcalc\intcalc.sty)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/hyperref\puenc.def)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/url\url.sty)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/generic/bitset\bitset.sty
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/generic/bigintcalc\bigintcalc.st
+y))) (C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/hyperref\hpdftex.def
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/rerunfilecheck\rerunfilech
+eck.sty
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/generic/uniquecounter\uniquecoun
+ter.sty)))
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/listings\listings.sty
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/listings\lstpatch.sty)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/listings\lstmisc.sty)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/listings\listings.cfg))
+==> First Aid for listings.sty no longer applied!
+    Expected:
+        2024/09/23 1.10c (Carsten Heinz)
+    but found:
+        2025/11/14 1.11b (Carsten Heinz)
+    so I'm assuming it got fixed.
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/minted\minted.sty
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/generic/catchfile\catchfile.sty
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/generic/etexcmds\etexcmds.sty))
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/fvextra\fvextra.sty
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/fancyvrb\fancyvrb.sty)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/upquote\upquote.sty
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/base\textcomp.sty))
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/lineno\lineno.sty))
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/latex2pydata\latex2pydata.
+sty)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/pgf/utilities\pgfkeys.sty
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/generic/pgf/utilities\pgfkeys.co
+de.tex
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/generic/pgf/utilities\pgfkeyslib
+raryfiltered.code.tex)))
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/pgfopts\pgfopts.sty)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/tools\shellesc.sty))
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsmath.sty
+For additional information on amsmath, use the `?' option.
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amstext.sty
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsgen.sty))
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsbsy.sty)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsopn.sty))
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\amssymb.sty
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\amsfonts.sty))
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/pdfpages\pdfpages.sty
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/base\ifthen.sty)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/tools\calc.sty)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/eso-pic\eso-pic.sty)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/pdfpages\pppdftex.def))
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/appendix\appendix.sty)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/lm\t1lmr.fd)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/l3backend\l3backend-pdftex
+.def) (main.aux)
+*geometry* driver: auto-detecting
+*geometry* detected driver: pdftex
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/context/base/mkii\supp-pdf.mkii
+[Loading MPS to PDF converter (version 2006.09.02).]
+)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/epstopdf-pkg\epstopdf-base
+.sty
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/00miktex\epstopdf-sys.cfg)
+) (C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/caption\ltcaption.sty)
+(main.out) (main.out)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/pdflscape\pdflscape.sty
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/pdflscape\pdflscape-nometa
+data.sty
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/graphics\lscape.sty)))
+[1{C:/Users/HP/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}{C:/Users/HP/Ap
+pData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-ec.enc} <./figures/logo_este.
+png>] [1]
+Overfull \hbox (28.23349pt too wide) in paragraph at lines 168--169
+[]\T1/lmr/m/n/12 Mes re-mer-cie-ments s'adressent en pre-mier lieu α mon en-ca-
+drant pΘ-da-go-gique, \T1/lmr/bx/n/12 Pro-fes-seur
+
+Overfull \hbox (23.84525pt too wide) in paragraph at lines 168--169
+\T1/lmr/bx/n/12 El Mahdi ER-RAJI\T1/lmr/m/n/12 , pour ses conseils avi-sΘs, son
+ suivi rΘ-gu-lier et ses orien-ta-tions prΘ-cieuses
+
+Overfull \hbox (6.24373pt too wide) in paragraph at lines 170--171
+[]\T1/lmr/m/n/12 Je re-mer-cie Θga-le-ment l'en-tre-prise \T1/lmr/bx/n/12 2Pi e
+Lear-ning SARL\T1/lmr/m/n/12 , au sein de la-quelle j'exerce
+
+Overfull \hbox (33.93692pt too wide) in paragraph at lines 170--171
+\T1/lmr/m/n/12 en tant qu'In-gΘ-nieur Lo-gi-ciel Full-Stack, pour avoir mis α d
+is-po-si-tion l'in-fra-struc-ture nΘ-ces-saire
+
+Overfull \hbox (20.14676pt too wide) in paragraph at lines 172--173
+[]\T1/lmr/m/n/12 Ma re-con-nais-sance va aussi α tous les en-sei-gnants de la f
+i-liΦre \T1/lmr/bx/n/12 Ba-che-lor en In-tel-li-gence
+
+Overfull \hbox (36.64003pt too wide) in paragraph at lines 172--173
+\T1/lmr/bx/n/12 Ar-ti-fi-cielle et Science des Don-nΘes \T1/lmr/m/n/12 de l'\T1
+/lmr/bx/n/12 ╔cole Su-pΘ-rieure de Tech-no-lo-gie d'Es-saouira
+[2]
+Overfull \hbox (3.57767pt too wide) in paragraph at lines 182--183
+\T1/lmr/m/n/12 SaaS (Soft-ware as a Ser-vice) d'as-sis-tance pΘ-da-go-gique ba-
+sΘe sur l'In-tel-li-gence Ar-ti-fi-cielle.
+
+Overfull \hbox (23.39923pt too wide) in paragraph at lines 182--183
+\T1/lmr/bx/n/12 ER-RAJI\T1/lmr/m/n/12 , avec le sou-tien de l'en-tre-prise \T1/
+lmr/bx/n/12 2Pi eLear-ning SARL \T1/lmr/m/n/12 qui a fourni l'in-fra-struc-ture
+
+
+Overfull \hbox (12.27437pt too wide) in paragraph at lines 182--183
+\T1/lmr/m/n/12 de dΘ-ploie-ment. Il vise α rΘ-soudre une pro-blΘ-ma-tique ma-je
+ure ren-con-trΘe par les Θtu-diants :
+
+Overfull \hbox (38.35837pt too wide) in paragraph at lines 184--185
+\T1/lmr/m/n/12 sys-tΦme de questions-rΘponses conver-sa-tion-nel (RAG), gΘ-nΘ-r
+a-tion de quiz adap-ta-tifs, fla-sh-cards
+
+Overfull \hbox (31.52275pt too wide) in paragraph at lines 184--185
+\T1/lmr/m/n/12 avec rΘ-pΘ-ti-tion es-pa-cΘe (SM-2), cartes men-tales in-ter-ac-
+tives et un mode exa-men ^^V per-met-tant
+
+Overfull \hbox (37.88475pt too wide) in paragraph at lines 184--185
+\T1/lmr/m/n/12 aux Θtu-diants de trans-for-mer tout do-cu-ment PDF en une ex-pΘ
+-rience d'ap-pren-tis-sage in-ter-ac-tive
+[3]
+Overfull \hbox (27.67613pt too wide) in paragraph at lines 195--196
+\T1/lmr/m/n/12 as-sis-tant plat-form po-we-red by Ar-ti-fi-cial In-tel-li-gence
+. This pro-ject was car-ried out in-di-vi-dually
+
+Overfull \hbox (22.68864pt too wide) in paragraph at lines 195--196
+\T1/lmr/m/n/12 un-der the su-per-vi-sion of \T1/lmr/bx/n/12 Pr. El Mahdi ER-RAJ
+I\T1/lmr/m/n/12 , with de-ploy-ment in-fra-struc-ture pro-vi-ded
+
+Overfull \hbox (11.285pt too wide) in paragraph at lines 195--196
+\T1/lmr/m/n/12 by \T1/lmr/bx/n/12 2Pi eLear-ning SARL\T1/lmr/m/n/12 . It ad-dre
+sses a ma-jor chal-lenge fa-ced by stu-dents : the dif-fi-culty
+
+Overfull \hbox (50.41605pt too wide) in paragraph at lines 197--198
+[]\T1/lmr/m/n/12 EduAI pro-vides a suite of in-tel-li-gent tools ^^V au-to-ma-t
+ic pe-da-go-gi-cal sum-ma-ries, conver-sa-tio-nal
+
+Overfull \hbox (27.77592pt too wide) in paragraph at lines 197--198
+\T1/lmr/m/n/12 Q&A (RAG), adap-tive quiz ge-ne-ra-tion, spaced-repetition fla-s
+h-cards (SM-2), in-ter-ac-tive mind
+[4] (main.toc) [5]
+
+Package longtable Warning: Column widths have changed
+(longtable)                in table 1 on input line 238.
+
+[6] (chapters/introduction.tex
+Overfull \hbox (1.85635pt too wide) in paragraph at lines 5--6
+[]\T1/lmr/m/n/12 L'essor du nu-mΘ-rique a pro-fon-dΘ-ment trans-formΘ les pra-t
+iques Θdu-ca-tives α tra-vers le
+
+Overfull \hbox (26.89674pt too wide) in paragraph at lines 5--6
+\T1/lmr/m/n/12 monde. Au Ma-roc, le pro-gramme na-tio-nal de di-gi-ta-li-sa-tio
+n de l'en-sei-gne-ment su-pΘ-rieur, portΘ
+
+Overfull \hbox (27.71666pt too wide) in paragraph at lines 5--6
+\T1/lmr/m/n/12 l'in-no-va-tion tech-no-lo-gique au c≈ur de la rΘ-forme pΘ-da-go
+-gique. Dans ce contexte, les Θtu-diants
+
+Overfull \hbox (1.761pt too wide) in paragraph at lines 5--6
+\T1/lmr/m/n/12 font face α un vo-lume crois-sant de res-sources aca-dΘ-miques ^
+^V prin-ci-pa-le-ment sous for-mat
+
+Overfull \hbox (51.73648pt too wide) in paragraph at lines 9--10
+\T1/lmr/m/n/12 En tant qu'In-gΘ-nieur Lo-gi-ciel Full-Stack au sein de l'en-tre
+-prise \T1/lmr/bx/n/12 2Pi eLear-ning SARL\T1/lmr/m/n/12 , spΘ-cia-li-sΘe
+
+Overfull \hbox (14.62462pt too wide) in paragraph at lines 9--10
+\T1/lmr/m/n/12 dans le dΘ-ve-lop-pe-ment de so-lu-tions Θdu-ca-tives nu-mΘ-riqu
+es, j'ai conτu, dΘ-ve-loppΘ et dΘ-ployΘ
+
+Overfull \hbox (61.15607pt too wide) in paragraph at lines 16--17
+[]\T1/lmr/bx/n/12 Analyse et spΘ-ci-fi-ca-tion des be-soins \T1/lmr/m/n/12 ^^V 
+Iden-ti-fi-ca-tion des ac-teurs, des be-soins fonc-tion-nels
+
+Overfull \hbox (17.34428pt too wide) in paragraph at lines 19--20
+[]\T1/lmr/bx/n/12 DΘploiement, mo-dΦle Θco-no-mique et pers-pec-tives \T1/lmr/m
+/n/12 ^^V Stra-tΘ-gie de dΘ-ploie-ment,
+)
+pdfTeX warning (ext4): destination with the same identifier (name{page.1}) has 
+been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.251 \chapter
+              {Contexte g├⌐n├⌐ral et probl├⌐matique} [1]
+Chapitre 1.
+(chapters/chapitre1.tex
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/lm\ot1lmr.fd)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/lm\omllmm.fd)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/lm\omslmsy.fd)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/lm\omxlmex.fd)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\umsa.fd)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\umsb.fd)
+Overfull \hbox (30.7577pt too wide) in paragraph at lines 33--34
+[]\T1/lmr/bx/n/12 2Pi eLear-ning SARL \T1/lmr/m/n/12 est une en-tre-prise tech-
+no-lo-gique spΘ-cia-li-sΘe dans le dΘ-ve-lop-pe-ment
+
+Overfull \hbox (25.43166pt too wide) in paragraph at lines 33--34
+\T1/lmr/m/n/12 de so-lu-tions Θdu-ca-tives nu-mΘ-riques. Fon-dΘe en 2022, l'en-
+tre-prise s'est ra-pi-de-ment po-si-tion-nΘe
+
+Overfull \hbox (52.38364pt too wide) in paragraph at lines 33--34
+\T1/lmr/m/n/12 comme un ac-teur in-no-vant dans le sec-teur de l'Ed-Tech, avec 
+pour mis-sion de rendre l'ap-pren-tis-sage
+
+Overfull \hbox (32.47229pt too wide) in paragraph at lines 35--36
+[]\T1/lmr/m/n/12 L'entreprise em-ploie une Θquipe di-verse de dΘ-ve-lop-peurs, 
+de-si-gners et ex-perts en pΘ-da-go-gie,
+
+Overfull \hbox (49.3485pt too wide) in paragraph at lines 35--36
+\T1/lmr/m/n/12 tra-vaillant en col-la-bo-ra-tion pour crΘer des pro-duits qui r
+Θ-pondent aux be-soins rΘels des Θdu-ca-teurs
+
+Overfull \hbox (9.04576pt too wide) in paragraph at lines 41--42
+\T1/lmr/m/n/12 a mis α dis-po-si-tion l'in-fra-struc-ture nΘ-ces-saire au dΘ-pl
+oie-ment de la pla-te-forme. L'en-semble
+
+Overfull \hbox (3.88258pt too wide) in paragraph at lines 41--42
+\T1/lmr/m/n/12 du pro-jet a ΘtΘ rΘa-lisΘ de ma-niΦre in-di-vi-duelle, sous l'en
+-ca-dre-ment pΘ-da-go-gique de \T1/lmr/bx/n/12 Pr. El
+[2]
+Overfull \hbox (4.15633pt too wide) in paragraph at lines 43--44
+[]\T1/lmr/m/n/12 Ma mis-sion consis-tait α conce-voir, dΘ-ve-lop-per et dΘ-ploy
+er la \T1/lmr/bx/n/12 ver-sion bΩta d'EduAI\T1/lmr/m/n/12 ,
+
+Overfull \hbox (14.36043pt too wide) in paragraph at lines 43--44
+\T1/lmr/m/n/12 un as-sis-tant pΘ-da-go-gique in-tel-li-gent sous forme de pla-t
+e-forme SaaS, ca-pable de trans-for-mer
+
+Overfull \hbox (26.7945pt too wide) in paragraph at lines 75--76
+[]\T1/lmr/m/n/12 L'observation du quo-ti-dien aca-dΘ-mique des Θtu-diants ma-ro
+-cains rΘ-vΦle une pro-blΘ-ma-tique
+[3]
+Overfull \hbox (30.27531pt too wide) in paragraph at lines 78--79
+[]\T1/lmr/m/it/12 ^^S De nom-breux Θtu-diants re-τoivent des cours au for-mat P
+DF qui sont longs, denses
+
+Overfull \hbox (20.48845pt too wide) in paragraph at lines 78--79
+\T1/lmr/m/it/12 et dif-fi-ciles α as-si-mi-ler. Cette sur-charge in-for-ma-tion
+-nelle pro-voque des dif-fi-cul-tΘs
+
+Overfull \hbox (10.28247pt too wide) in paragraph at lines 78--79
+\T1/lmr/m/it/12 de com-prΘ-hen-sion des conte-nus, ce qui se rΘ-per-cute di-rec
+-te-ment sur les notes et
+
+Underfull \hbox (badness 4001) in paragraph at lines 128--128
+[]\T1/lmr/bx/n/12 ProblΘmatique : \T1/lmr/m/n/12 Com-ment ex-ploi-ter l'In-tel-
+li-gence Ar-ti-fi-cielle et le
+[4{C:/Users/HP/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-mathsy.enc}]
+
+Underfull \hbox (badness 10000) in paragraph at lines 158--158
+[]|\T1/lmr/m/n/10.95 Non spΘ-cia-lisΘ Θdu-ca-tion,
+
+Underfull \hbox (badness 1478) in paragraph at lines 158--158
+\T1/lmr/m/n/10.95 pas les PDF per-son-nels de
+
+Underfull \hbox (badness 10000) in paragraph at lines 158--158
+[]|\T1/lmr/m/n/10.95 OrientΘ re-cherche, pas
+
+Underfull \hbox (badness 10000) in paragraph at lines 158--158
+\T1/lmr/m/n/10.95 d'ap-pren-tis-sage in-ter-ac-tif,
+
+Underfull \hbox (badness 10000) in paragraph at lines 158--158
+[]|\T1/lmr/m/n/10.95 CrΘation ma-nuelle
+
+Overfull \hbox (14.11584pt too wide) in paragraph at lines 168--169
+[]\T1/lmr/bx/n/12 Fragmentation fonc-tion-nelle \T1/lmr/m/n/12 : au-cune so-lu-
+tion ne pro-pose un Θco-sys-tΦme com-plet
+[5]
+Overfull \hbox (2.10966pt too wide) in paragraph at lines 170--171
+[]\T1/lmr/bx/n/12 Absence de per-son-na-li-sa-tion contex-tuelle \T1/lmr/m/n/12
+ : les ou-tils gΘ-nΘ-ra-listes (ChatGPT,
+
+Overfull \hbox (3.03416pt too wide) in paragraph at lines 180--181
+[]\T1/lmr/bx/n/12 Absence de suivi de pro-gres-sion \T1/lmr/m/n/12 : au-cune pl
+a-te-forme ne com-bine ap-pren-tis-sage
+
+Overfull \hbox (15.40358pt too wide) in paragraph at lines 180--181
+\T1/lmr/m/n/12 ac-tif et ana-ly-tique de per-for-mance (ac-ti-vitΘ jour-na-liΦr
+e, taux de rΘus-site par ma-tiΦre). 
+
+Underfull \hbox (badness 10000) in paragraph at lines 233--233
+[]|\T1/lmr/m/n/12 RΘponses fi-dΦles au do-cu-ment source (pas
+[6]
+Overfull \hbox (28.63379pt too wide) in paragraph at lines 244--245
+[]\T1/lmr/m/n/12 Concevoir et im-plΘ-men-ter un pi-pe-line RAG com-plet (ex-tra
+c-tion, chun-king, em-bed-dings,
+
+Overfull \hbox (13.76884pt too wide) in paragraph at lines 247--248
+[]\T1/lmr/m/n/12 IntΘgrer des mo-dΦles d'IA mul-ti-lingues (Groq/Llama 3.3 70B,
+ sentence-transformers,
+
+Overfull \hbox (22.27731pt too wide) in paragraph at lines 270--271
+[]\T1/lmr/m/n/12 Pour la rΘa-li-sa-tion de ce pro-jet, j'ai adoptΘ une ap-proch
+e \T1/lmr/bx/n/12 Agile \T1/lmr/m/n/12 itΘ-ra-tive et in-crΘ-men-tale : 
+[7]
+Overfull \hbox (30.74318pt too wide) in paragraph at lines 274--275
+[]\T1/lmr/bx/n/12 Priorisation par va-leur \T1/lmr/m/n/12 : les fonc-tion-na-li
+-tΘs c≈ur (upload, rΘ-sumΘ, Q&A) dΘ-ve-lop-pΘes
+
+Underfull \hbox (badness 10000) in paragraph at lines 296--296
+[]|\T1/lmr/m/n/12 Mode exa-men chro-no-mΘ-trΘ, mind-map,
+
+Underfull \hbox (badness 3312) in paragraph at lines 296--296
+[]|\T1/lmr/m/n/12 Panneau ad-min, Do-cker Com-pose, tests
+) [8]
+Chapitre 2.
+(chapters/chapitre2.tex
+Overfull \hbox (6.5906pt too wide) in paragraph at lines 7--8
+[]\T1/lmr/m/n/12 Ce cha-pitre prΘ-sente l'ana-lyse dΘ-taillΘe des be-soins fonc
+-tion-nels et non-fonctionnels de
+
+Overfull \hbox (18.56125pt too wide) in paragraph at lines 7--8
+\T1/lmr/m/n/12 la pla-te-forme EduAI, ainsi que la mo-dΘ-li-sa-tion des cas d'u
+ti-li-sa-tion α tra-vers les dia-grammes
+
+Overfull \hbox (23.0618pt too wide) in paragraph at lines 7--8
+\T1/lmr/m/n/12 UML. Cette phase d'ana-lyse consti-tue le socle sur le-quel re-p
+ose la concep-tion et la rΘa-li-sa-tion
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/lm\t1lmtt.fd) [9] [10]
+Underfull \hbox (badness 2229) in paragraph at lines 157--157
+[]|\T1/lmr/m/n/12 JWT HS256, ha-chage bcrypt, va-li-da-tion Py-dan-tic, CORS
+
+Underfull \hbox (badness 1194) in paragraph at lines 157--157
+[]|\T1/lmr/m/n/12 Code mo-du-laire, sΘ-pa-ra-tion claire ser-vices/routers/data
+base,
+[11]
+
+LaTeX Warning: Reference `fig:uc-overview' on page 12 undefined on input line 1
+69.
+
+[12] [13 <./figures/uc_global.png (PNG copy)>] [14 <./figures/uc_p1_auth_cours.
+png (PNG copy)>] [15 <./figures/uc_p2_qa_resume.png (PNG copy)>] [16 <./figures
+/uc_p3_quiz_flash_mind.png (PNG copy)>]
+Overfull \hbox (17.20882pt too wide) in paragraph at lines 226--227
+[]\T1/lmr/m/n/12 Le cache des rΘ-su-mΘs uti-lise un ver-sio-ning (\T1/lmtt/m/n/
+12 v4-groq\T1/lmr/m/n/12 ) pour in-va-li-der au-to-ma-ti-que-ment
+
+Overfull \hbox (32.85626pt too wide) in paragraph at lines 227--228
+[]\T1/lmr/m/n/12 Seuls les uti-li-sa-teurs avec \T1/lmtt/m/n/12 role = "admin" 
+\T1/lmr/m/n/12 peuvent ac-cΘ-der au mo-dule d'ad-mi-nis-tra-tion. 
+) [17{C:/Users/HP/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-rm.enc}{C
+:/Users/HP/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-mathit.enc} <./f
+igures/uc_p4_exam.png (PNG copy)>]
+Chapitre 3.
+(chapters/chapitre3.tex
+Underfull \hbox (badness 10000) in paragraph at lines 70--70
+[]|\T1/lmr/m/n/12 Logique mΘ-tier : chun-ker, em-bed-der,
+
+Underfull \hbox (badness 7379) in paragraph at lines 70--70
+\T1/lmr/m/n/12 re-trie-ver, LLM client, quiz ge-ne-ra-tor,
+
+Underfull \hbox (badness 10000) in paragraph at lines 70--70
+[]|\T1/lmr/m/n/12 Documents : users, courses, chunks,
+
+Underfull \hbox (badness 10000) in paragraph at lines 70--70
+[]|\T1/lmr/m/n/12 Index vec-to-riels par cours (si-mi-la-ritΘ
+
+Underfull \hbox (badness 10000) in paragraph at lines 70--70
+[]|\T1/lmr/m/n/12 ModΦles Hug-ging-Face prΘ-tΘlΘchargΘs
+
+Underfull \hbox (badness 10000) in paragraph at lines 70--70
+[]|\T1/lmr/m/n/12 Embeddings (Mi-niLM), QA
+[18] [19]
+Overfull \hbox (49.88144pt too wide) in paragraph at lines 87--87
+|[]\T1/lmr/bx/n/17.28 Conception du pi-pe-line NLP / In-tel-li-gence Ar-ti-fi-c
+ielle| 
+
+Underfull \hbox (badness 4144) in paragraph at lines 129--129
+[]|\T1/lmr/m/n/12 DΘcoupage en seg-ments de 400
+
+Underfull \hbox (badness 10000) in paragraph at lines 129--129
+[]|\T1/lmr/m/n/12 Vectorisation des chunks (384
+
+Underfull \hbox (badness 4634) in paragraph at lines 129--129
+[]|\T1/lmr/m/n/12 RΘsumΘ + quiz en back-ground
+[20] [21] [22 <./figures/sd_s2_upload.png>] [23 <./figures/sd_s4_summary.png>]
+[24 <./figures/sd_s5_quiz.png>] [25 <./figures/sd_s8_exam.png>] [26 <./figures/
+mld_1_auth_cours.png>] [27 <./figures/mld_2_quiz_flash.png> <./figures/mld_3_ex
+am_activite.png>]) [28]
+Chapitre 4.
+(chapters/chapitre4.tex
+Overfull \hbox (17.57828pt too wide) in paragraph at lines 7--8
+[]\T1/lmr/m/n/12 Ce cha-pitre dΘ-taille la mise en ≈uvre tech-nique de la pla-t
+e-forme EduAI : les tech-no-lo-gies
+
+Overfull \hbox (19.58504pt too wide) in paragraph at lines 7--8
+\T1/lmr/m/n/12 uti-li-sΘes, l'im-plΘ-men-ta-tion des mo-dules clΘs, les ex-trai
+ts de code si-gni-fi-ca-tifs, et les in-ter-faces
+[29]
+Underfull \hbox (badness 2409) in paragraph at lines 136--136
+[]|\T1/lmr/m/n/12 ModΦle ex-trac-tif de QA en fran-τais
+
+Underfull \hbox (badness 10000) in paragraph at lines 136--136
+[]|\T1/lmr/m/n/12 Recherche par si-mi-la-ritΘ co-si-nus
+[30] (C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/listings\lstlang1.sty
+) (C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/lm\ts1lmtt.fd) [31{C:/Us
+ers/HP/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-ts1.enc}] [32]
+[33] [34] [35] [36] [37] [38]
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/lm\ts1lmr.fd) [39])
+[40]
+Chapitre 5.
+(chapters/chapitre5.tex
+Underfull \hbox (badness 10000) in paragraph at lines 31--31
+[]|\T1/lmr/m/n/12 Port 8000, vo-lumes :
+
+Underfull \hbox (badness 10000) in paragraph at lines 31--31
+[]|\T1/lmr/m/n/12 Port 3000, va-riable :
+
+Underfull \hbox (badness 2564) in paragraph at lines 31--31
+[]|\T1/lmr/m/n/12 Port 27017, vo-lume per-sis-tant,
+
+Underfull \hbox (badness 1552) in paragraph at lines 31--31
+[]|\T1/lmr/m/n/12 Port 9443, ges-tion vi-suelle des
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/listings\lstlang1.sty)
+(C:\Users\HP\AppData\Local\Programs\MiKTeX\tex/latex/listings\lstlang1.sty)
+[41] [42]
+Overfull \hbox (42.51501pt too wide) in paragraph at lines 95--96
+[]\T1/lmr/bx/n/12 Volumes per-sis-tants \T1/lmr/m/n/12 : don-nΘes Mon-goDB et i
+n-dex FAISS prΘ-ser-vΘs entre re-dΘ-ploie-ments 
+
+Overfull \hbox (24.04457pt too wide) in paragraph at lines 103--104
+[]\T1/lmr/m/n/12 EduAI adopte un mo-dΦle \T1/lmr/bx/n/12 free-mium \T1/lmr/m/n/
+12 adaptΘ au pou-voir d'achat des Θtu-diants ma-ro-cains : 
+
+Underfull \hbox (badness 10000) in paragraph at lines 130--130
+[]|[] \T1/lmr/m/n/12 (30 ques-tions,
+
+Overfull \hbox (49.38747pt too wide) in paragraph at lines 139--140
+[]\T1/lmr/bx/n/12 SAM \T1/lmr/m/n/12 (Ser-vi-ceable Avai-lable Mar-ket) : 400 0
+00 Θtu-diants connec-tΘs avec un smart-phone/PC 
+
+Underfull \hbox (badness 10000) in alignment at lines 164--164
+[][][][] 
+[43]
+Overfull \hbox (15.43562pt too wide) in paragraph at lines 174--175
+[]\T1/lmr/m/n/12 Pas de dΘ-penses pu-bli-ci-taires mas-sives les 6 pre-miers mo
+is (va-li-da-tion produit-market
+
+Underfull \hbox (badness 10000) in paragraph at lines 196--196
+[]|\T1/lmr/m/n/12 RΘseaux so-ciaux, par-te-na-riats
+[44]
+Overfull \hbox (8.15881pt too wide) in paragraph at lines 229--230
+[]\T1/lmr/m/n/12 Support vo-cal (Text-to-Speech pour les rΘ-su-mΘs, Speech-to-T
+ext pour les ques-tions) 
+) [45] (chapters/conclusion.tex
+Overfull \hbox (39.04718pt too wide) in paragraph at lines 10--11
+[]\T1/lmr/m/n/12 Un pi-pe-line RAG (Retrieval-Augmented Ge-ne-ra-tion) com-bi-n
+ant em-bed-dings mul-ti-lingues
+)
+Overfull \hbox (3.35402pt too wide) in paragraph at lines 31--274
+[] []\T1/lmr/bx/n/12 Pers-pec-tives.[] \T1/lmr/m/n/12 EduAI consti-tue une base
+ so-lide pour un pro-duit com-mer-cia-li-sable. Les
+
+Overfull \hbox (60.26823pt too wide) in paragraph at lines 31--274
+\T1/lmr/m/n/12 paie-ments lo-caux (CMI/Payzone), et une offre B2B α des-ti-na-t
+ion des Θta-blis-se-ments d'en-sei-gne-ment
+
+Overfull \hbox (19.32098pt too wide) in paragraph at lines 31--274
+\T1/lmr/m/n/12 su-pΘ-rieur ma-ro-cains. Le contexte du pro-gramme Ma-roc Di-gi-
+tal 2030 offre un en-vi-ron-ne-ment
+
+Overfull \hbox (7.5369pt too wide) in paragraph at lines 31--274
+\T1/lmr/m/n/12 fa-vo-rable pour le dΘ-ve-lop-pe-ment de so-lu-tions Ed-Tech in-
+no-vantes sur le mar-chΘ na-tio-nal et
+[46]
+Underfull \hbox (badness 1642) in paragraph at lines 302--303
+[]\T1/lmr/m/n/12 Haut-Commissariat au Plan, \T1/lmr/m/it/12 Le Ma-roc en chiffr
+es 2023 ^^V ╔du-ca-tion et
+[47]
+Annexe A.
+[48] [49 <./figures/sd_s1_auth.png>] [50 <./figures/sd_s3_qa.png>] [51 <./figur
+es/sd_s6_flashcards.png>] [52 <./figures/sd_s7_mindmap.png>]
+
+Package longtable Warning: Table widths have changed. Rerun LaTeX.
+
+[53 <./figures/sd_s9_admin.png>] (main.aux)
+
+LaTeX Warning: There were undefined references.
+
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
+
+Package rerunfilecheck Warning: File `main.out' has changed.
+(rerunfilecheck)                Rerun to get outlines right
+(rerunfilecheck)                or use package `bookmark'.
+
+ )
+(see the transcript file for additional information)<C:/Users/HP/AppData/Local/
+Programs/MiKTeX/fonts/type1/public/lm/lmbx10.pfb><C:/Users/HP/AppData/Local/Pro
+grams/MiKTeX/fonts/type1/public/lm/lmbx12.pfb><C:/Users/HP/AppData/Local/Progra
+ms/MiKTeX/fonts/type1/public/lm/lmcsc10.pfb><C:/Users/HP/AppData/Local/Programs
+/MiKTeX/fonts/type1/public/lm/lmmi10.pfb><C:/Users/HP/AppData/Local/Programs/Mi
+KTeX/fonts/type1/public/lm/lmmi12.pfb><C:/Users/HP/AppData/Local/Programs/MiKTe
+X/fonts/type1/public/lm/lmmi8.pfb><C:/Users/HP/AppData/Local/Programs/MiKTeX/fo
+nts/type1/public/lm/lmr10.pfb><C:/Users/HP/AppData/Local/Programs/MiKTeX/fonts/
+type1/public/lm/lmr12.pfb><C:/Users/HP/AppData/Local/Programs/MiKTeX/fonts/type
+1/public/lm/lmr8.pfb><C:/Users/HP/AppData/Local/Programs/MiKTeX/fonts/type1/pub
+lic/lm/lmri10.pfb><C:/Users/HP/AppData/Local/Programs/MiKTeX/fonts/type1/public
+/lm/lmri12.pfb><C:/Users/HP/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm
+/lmsy10.pfb><C:/Users/HP/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lm
+sy8.pfb><C:/Users/HP/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtk10
+.pfb><C:/Users/HP/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtt10.pf
+b><C:/Users/HP/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtt12.pfb><
+C:/Users/HP/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/symbols/m
+sam10.pfb>
+pdflatex : pdflatex: major issue: So far, you have not checked for MiKTeX 
+updates.
+At line:1 char:1
++ pdflatex -interaction=nonstopmode main.tex 2>&1 | Out-File -FilePath  ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (pdflatex: major...MiKTeX updates. 
+   :String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+Output written on main.pdf (60 pages, 2172545 bytes).
+Transcript written on main.log.

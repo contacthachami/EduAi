@@ -1,0 +1,157 @@
+@startuml EduAI_UseCase_Page1
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam actorStyle awesome
+
+skinparam usecase {
+  BackgroundColor #E8F4FD
+  BorderColor #2E86C1
+  FontSize 11
+  FontName Arial
+}
+skinparam actor {
+  BackgroundColor #D5F5E3
+  BorderColor #1E8449
+  FontSize 12
+  FontName Arial
+}
+skinparam package {
+  BackgroundColor #FEF9E7
+  BorderColor #D4AC0D
+  FontSize 13
+  FontName Arial Bold
+}
+skinparam arrow {
+  Color #2E86C1
+  FontSize 10
+}
+
+title **EduAI — Cas d'Utilisation · Page 1/4**\n**Authentification · Gestion des Cours · Administration**
+
+left to right direction
+
+' ── Acteurs ──────────────────────────────────────────────────
+actor "Étudiant" as Student
+actor "Administrateur\n(role=admin)" as Admin #FFF3E0
+actor "MongoDB" as DB #LightYellow
+actor "FAISS\n(Index vectoriel)" as FAISS #LightPink
+
+' ── Paquet 1 : Authentification ──────────────────────────────
+package "1. Authentification" {
+  usecase "S'inscrire\n(POST /auth/register)" as UC_Register
+  usecase "Se connecter\n(POST /auth/login)" as UC_Login
+  usecase "Consulter profil\n(GET /auth/me)" as UC_Profile
+  usecase "Mot de passe oublié\n(POST /auth/forgot-password)" as UC_ForgotPwd
+  usecase "Réinitialiser mot de passe\n(POST /auth/reset-password)" as UC_ResetPwd
+  usecase "Générer token JWT\n(HS256 · 7 jours)" as UC_JWT
+  usecase "Hacher mot de passe\n(bcrypt · 72 bytes)" as UC_Bcrypt
+}
+
+' ── Paquet 2 : Gestion des Cours ─────────────────────────────
+package "2. Gestion des Cours" {
+  usecase "Uploader un cours PDF\n(POST /courses/upload)" as UC_Upload
+  usecase "Extraire le texte PDF\n(PyMuPDF)" as UC_Extract
+  usecase "Découper en chunks\n(NLP · 400 tokens · overlap 50)" as UC_Chunk
+  usecase "Générer embeddings\n(MiniLM · 384 dimensions)" as UC_Embed
+  usecase "Indexer dans FAISS\n(FlatIP index)" as UC_Index
+  usecase "Lister ses cours\n(GET /courses/)" as UC_List
+  usecase "Voir détail d'un cours\n(GET /courses/{id})" as UC_Detail
+  usecase "Supprimer un cours\n(DELETE /courses/{id})" as UC_Delete
+}
+
+' ── Paquet 3 : Administration ─────────────────────────────────
+package "9. Administration  [require_admin]" {
+  usecase "Lister les utilisateurs\n(GET /admin/users)" as UC_AdminList
+  usecase "Créer un utilisateur\n(POST /admin/users)" as UC_AdminCreate
+  usecase "Modifier un utilisateur\n(PUT /admin/users/{id})" as UC_AdminUpdate
+  usecase "Supprimer un utilisateur\n(DELETE /admin/users/{id})" as UC_AdminDelete
+  usecase "Statistiques plateforme\n(GET /admin/stats)" as UC_AdminStats
+}
+
+' ── Relations Étudiant → UCs ─────────────────────────────────
+Student --> UC_Register
+Student --> UC_Login
+Student --> UC_Profile
+Student --> UC_ForgotPwd
+Student --> UC_ResetPwd
+Student --> UC_Upload
+Student --> UC_List
+Student --> UC_Detail
+Student --> UC_Delete
+
+' ── Relations Administrateur → UCs ───────────────────────────
+Admin --> UC_Login
+Admin --> UC_Profile
+Admin --> UC_AdminList
+Admin --> UC_AdminCreate
+Admin --> UC_AdminUpdate
+Admin --> UC_AdminDelete
+Admin --> UC_AdminStats
+
+' ── Include / Extend ─────────────────────────────────────────
+UC_Register ..> UC_Bcrypt  : <<include>>
+UC_Register ..> UC_JWT     : <<include>>
+UC_Login    ..> UC_Bcrypt  : <<include>>
+UC_Login    ..> UC_JWT     : <<include>>
+
+note right of UC_ForgotPwd
+  Génère un token sécurisé (TTL 1 h)
+  Stocké dans collection password_resets
+  Envoyé à l'utilisateur via email
+  → L'utilisateur clique le lien puis
+    appelle POST /auth/reset-password
+    avec le token pour réinitialiser
+end note
+
+UC_Upload   ..> UC_Extract : <<include>>
+UC_Extract  ..> UC_Chunk   : <<include>>
+UC_Chunk    ..> UC_Embed   : <<include>>
+UC_Embed    ..> UC_Index   : <<include>>
+
+note right of UC_Upload
+  SaaS Plan Quota :
+  Plan Gratuit (Free) : max 3 cours à vie
+  Plan Pro             : cours illimités
+  Taille max : 50 MB / fichier
+  Pré-génère résumé + quiz
+  en tâche de fond (asyncio)
+end note
+
+note bottom of UC_AdminCreate
+  Rôle admin → Plan Pro forcé automatiquement
+  Rôles disponibles : "admin" | "user"
+  Plans disponibles : "free"  | "pro"
+  Compte admin par défaut :
+    admin@gmail.com / eduai@2026
+end note
+
+note right of UC_AdminDelete
+  Suppression en cascade :
+  cours · chunks · résumés
+  quiz · flashcards · examens
+  (protection : ne peut pas
+   supprimer son propre compte)
+end note
+
+' ── Relations systèmes externes ──────────────────────────────
+UC_Register  --> DB : insert user (plan=free, role=user)
+UC_Login     --> DB : find user + verify password
+UC_Profile   --> DB : find user by id (JWT sub)
+UC_ForgotPwd --> DB : store reset_token (TTL 1h)\ncollection: password_resets
+UC_ResetPwd  --> DB : verify token + update password_hash
+
+UC_Upload    --> DB : insert course + chunks
+UC_List      --> DB : find courses by user_id
+UC_Detail    --> DB : find course by id
+UC_Delete    --> DB : delete course + chunks
+
+UC_AdminList   --> DB : find all users (sorted by created_at)
+UC_AdminCreate --> DB : insert user
+UC_AdminUpdate --> DB : update user fields
+UC_AdminDelete --> DB : delete user + all related data
+UC_AdminStats  --> DB : count users / courses / chunks / admins
+
+UC_Index    --> FAISS : save .faiss index\n(/data/faiss_indexes/)
+UC_Delete   --> FAISS : delete .faiss index
+
+@enduml

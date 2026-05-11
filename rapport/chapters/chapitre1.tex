@@ -1,0 +1,273 @@
+% ══════════════════════════════════════════════════════════════════════════════
+%  CHAPITRE 1 — CONTEXTE GÉNÉRAL ET PROBLÉMATIQUE
+% ══════════════════════════════════════════════════════════════════════════════
+
+\section{Présentation de l'organisme d'accueil}
+
+\subsection{Fiche signalétique}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\rowcolor{table-row-alt}
+\textbf{Raison sociale}      & 2Pi eLearning SARL \\
+\midrule
+\textbf{Secteur d'activité}  & EdTech — Technologies éducatives numériques \\
+\textbf{Date de création}    & 2022 \\
+\textbf{Effectif}            & Équipe pluridisciplinaire (développeurs, designers, experts pédagogiques) \\
+\textbf{Mission}             & Rendre l'apprentissage plus interactif, engageant et accessible \\
+\textbf{Domaine}             & Solutions e-learning, plateformes pédagogiques intelligentes \\
+\bottomrule
+\end{tabularx}
+\caption{Fiche signalétique de 2Pi eLearning SARL}
+\label{tab:fiche-entreprise}
+\end{table}
+
+\subsection{Présentation de l'entreprise}
+
+\textbf{2Pi eLearning SARL} est une entreprise marocaine fondée en 2022, spécialisée dans le développement de solutions éducatives numériques. Elle intervient dans le secteur EdTech avec pour objectif de proposer des outils d'apprentissage plus interactifs et accessibles.
+
+L'équipe est composée de développeurs, de designers et de spécialistes en pédagogie. L'entreprise développe principalement des plateformes d'apprentissage en ligne, en intégrant des technologies comme l'Intelligence Artificielle et le Traitement Automatique du Langage Naturel.
+
+Dans le cadre de ce projet, 2Pi eLearning a mis à disposition un espace sur son infrastructure \textbf{Portainer}, ce qui a permis d'héberger EduAI dans un environnement de production.
+
+\subsection{Contexte du projet}
+
+L'idée de ce projet vient d'un problème que j'ai moi-même rencontré en tant qu'étudiant : la difficulté de réviser à partir de cours PDF souvent très longs. \textbf{EduAI} est donc un projet personnel, conçu pour apporter une réponse concrète à ce besoin.
+
+J'ai réalisé l'ensemble du projet seul, de la conception au déploiement, sous l'encadrement de \textbf{Pr. El Mahdi ERRAJI}. En parallèle de mes études, je travaille comme \textbf{Développeur Full-stack et Responsable des Opérations} chez \textbf{2Pi eLearning SARL}, qui a fourni l'infrastructure de déploiement.
+
+% ──────────────────────────────────────────────────────────────────────────────
+\section{Contexte général}
+
+\subsection{Le paysage éducatif au Maroc}
+
+Le système éducatif marocain connaît actuellement plusieurs évolutions importantes :
+
+\begin{itemize}
+  \item \textbf{Vision Stratégique 2015-2030 :} le Maroc a engagé une réforme globale de son système éducatif, avec un accent particulier sur la digitalisation et l'innovation pédagogique.
+  \item \textbf{Programme Maroc Digital 2030 :} cette stratégie nationale accélère la transition numérique dans l'ensemble des secteurs, y compris l'éducation.
+  \item \textbf{Impact post-pandémique :} la crise sanitaire a révélé les limites de l'enseignement à distance et a accéléré l'adoption de solutions numériques.
+  \item \textbf{Démographie jeune :} avec plus d'un million d'étudiants dans l'enseignement supérieur, la demande en outils pédagogiques innovants est considérable.
+\end{itemize}
+
+\subsection{La digitalisation de l'enseignement supérieur}
+
+Les universités marocaines ont largement adopté la diffusion de cours sous format numérique (PDF, présentations, documents scannés). Si cette digitalisation répond au problème d'accessibilité physique aux supports, elle engendre de nouveaux défis :
+
+\begin{itemize}
+  \item Des documents souvent volumineux (50 à 200 pages par matière et par semestre) ;
+  \item Un format intrinsèquement passif, n'encourageant pas l'interaction ;
+  \item L'absence d'outils d'auto-évaluation intégrés ;
+  \item La difficulté de synthétiser et de mémoriser un grand volume d'informations.
+\end{itemize}
+
+% ──────────────────────────────────────────────────────────────────────────────
+\section{Problématique}
+
+\subsection{Constat}
+
+L'observation du quotidien académique des étudiants marocains fait apparaître un problème fréquent :
+
+\begin{quote}
+\textit{\og De nombreux étudiants reçoivent des cours au format PDF, souvent longs, denses et difficiles à assimiler. Cette surcharge informationnelle engendre des difficultés de compréhension qui se répercutent directement sur les résultats académiques et la réussite des parcours universitaires. \fg{}}
+\end{quote}
+
+\subsection{Analyse détaillée}
+
+Les difficultés identifiées couvrent plusieurs aspects :
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\rowcolor{eduai-primary}
+\thead{Dimension} & \thead{Description} \\
+\midrule
+\textbf{Volume}           & Cours PDF de 50 à 200+ pages, avec plusieurs matières en parallèle \\
+\textbf{Densité}          & Contenu académique complexe, terminologie spécialisée \\
+\textbf{Passivité}        & Format statique ne permettant aucune interaction avec le contenu \\
+\textbf{Mémorisation}     & Absence de mécanisme de révision structurée ou de répétition espacée \\
+\textbf{Auto-évaluation}  & Aucun outil permettant à l'étudiant de tester ses acquis avant l'examen \\
+\textbf{Synthèse}         & Difficulté à identifier et extraire les concepts clés d'un document long \\
+\textbf{Visualisation}    & Absence de représentation visuelle des liens entre les concepts \\
+\bottomrule
+\end{tabularx}
+\caption{Dimensions de la problématique étudiante}
+\label{tab:problematique}
+\end{table}
+
+\subsection{Impact sur la réussite académique}
+
+Ces difficultés s'enchaînent et se renforcent mutuellement :
+
+\begin{enumerate}
+  \item L'étudiant reçoit un PDF volumineux $\rightarrow$ découragement face au volume ;
+  \item Lecture passive sans interaction $\rightarrow$ faible rétention de l'information ;
+  \item Absence de mécanisme de révision $\rightarrow$ oubli rapide (courbe d'Ebbinghaus) ;
+  \item Pas d'auto-évaluation $\rightarrow$ fausse confiance ou anxiété ;
+  \item Résultat : \textbf{notes insuffisantes} et \textbf{risque d'échec académique}.
+\end{enumerate}
+
+\subsection{Formulation de la problématique}
+
+\begin{center}
+\fbox{\parbox{0.9\textwidth}{
+\textbf{Problématique :} Comment exploiter l'Intelligence Artificielle et le Traitement Automatique du Langage Naturel pour transformer des documents PDF de cours en une expérience d'apprentissage interactive, personnalisée et mesurable, permettant aux étudiants d'améliorer significativement leur compréhension et leur réussite académique ?
+}}
+\end{center}
+
+% ──────────────────────────────────────────────────────────────────────────────
+\section{Étude de l'existant}
+
+\subsection{Solutions existantes sur le marché}
+
+Plusieurs solutions tentent de répondre, partiellement, à cette problématique. Le tableau~\ref{tab:existant} en présente une synthèse comparative :
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{lXX}
+\toprule
+\rowcolor{eduai-primary}
+\thead{Solution} & \thead{Fonctionnalités} & \thead{Limites} \\
+\midrule
+\textbf{ChatGPT / Claude} & Q\&A généraliste, résumé de texte & Non spécialisé pour l'éducation, pas de suivi de progression, risque d'hallucinations hors contexte, pas de quiz structuré \\
+\textbf{Quizlet} & Flashcards, quiz basiques & Création manuelle, pas d'IA générative, pas de résumé, pas d'analyse de PDF \\
+\textbf{Notion AI} & Résumé, Q\&A sur documents & Pas de quiz, pas de flashcards, pas de mode examen, modèle freemium limité \\
+\textbf{Coursera / EdX} & Cours structurés avec quiz & Contenu prédéfini, ne traite pas les PDF personnels de l'étudiant \\
+\textbf{SciSpace / Scholarcy} & Résumé d'articles scientifiques & Orienté recherche, pas d'apprentissage interactif, pas de quiz, anglophone \\
+\textbf{Anki} & Flashcards avec algorithme SM-2 & Création manuelle fastidieuse, pas de génération automatique, pas de résumé \\
+\bottomrule
+\end{tabularx}
+\caption{Analyse comparative des solutions existantes}
+\label{tab:existant}
+\end{table}
+
+\subsection{Analyse critique}
+
+En examinant les solutions disponibles sur le marché, on constate plusieurs manques :
+
+\begin{enumerate}[label=\textbf{C\arabic*.}]
+  \item \textbf{Fragmentation fonctionnelle :} aucune solution ne propose un écosystème intégré réunissant résumé, Q\&A, quiz, flashcards, carte mentale et examen au sein d'une même plateforme.
+  
+  \item \textbf{Absence de personnalisation contextuelle :} les outils généralistes (ChatGPT, Claude) ne sont pas ancrés dans le contenu spécifique du cours, ce qui génère des hallucinations et des réponses hors contexte.
+  
+  \item \textbf{Absence de pipeline RAG :} sans mécanisme de \textit{Retrieval-Augmented Generation}, les réponses ne sont pas fidèles au document source.
+  
+  \item \textbf{Création manuelle obligatoire :} Quizlet et Anki exigent que l'étudiant crée manuellement ses fiches, ce qui consomme un temps précieux.
+  
+  \item \textbf{Support multilingue insuffisant :} la majorité des solutions sont optimisées pour l'anglais, sans support natif du français technique utilisé dans les universités marocaines.
+  
+  \item \textbf{Coût élevé :} les solutions professionnelles sont souvent inadaptées au budget des étudiants marocains.
+  
+  \item \textbf{Absence de suivi de progression :} aucune plateforme ne combine apprentissage actif et analytique de performance.
+\end{enumerate}
+
+% ──────────────────────────────────────────────────────────────────────────────
+\section{Solution proposée : EduAI}
+
+\subsection{Vision globale}
+
+\textbf{EduAI} est une plateforme SaaS qui permet à un étudiant d'uploader son cours PDF et d'obtenir automatiquement plusieurs outils d'apprentissage générés par l'IA :
+
+\begin{center}
+\fbox{\parbox{0.88\textwidth}{
+\centering
+\vspace{0.3cm}
+\textbf{PDF du cours} $\xrightarrow{\text{Upload}}$ \textbf{Pipeline IA} $\xrightarrow{\text{Génération automatique}}$ 
+\begin{itemize}[nosep, leftmargin=*]
+  \item[\checkmark] Résumé pédagogique structuré par chapitre
+  \item[\checkmark] Chat Q\&A contextuel (RAG)
+  \item[\checkmark] Quiz adaptatifs auto-générés
+  \item[\checkmark] Flashcards avec répétition espacée (SM-2)
+  \item[\checkmark] Carte mentale interactive
+  \item[\checkmark] Mode examen chronométré
+\end{itemize}
+\vspace{0.2cm}
+}}
+\end{center}
+
+\subsection{Positionnement et différenciation}
+
+EduAI se distingue des outils existants sur plusieurs points :
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\rowcolor{eduai-primary}
+\thead{Axe de différenciation} & \thead{Description} \\
+\midrule
+\textbf{Plateforme intégrée} & Six outils d'apprentissage réunis dans une seule plateforme \\
+\textbf{RAG contextuel} & Réponses fidèles au document source, éliminant les hallucinations \\
+\textbf{Automatisation complète} & Aucune création manuelle requise : tout est généré par l'IA \\
+\textbf{Multilingue natif} & Support du français et de l'arabe via des embeddings multilingues \\
+\textbf{Apprentissage adaptatif} & Algorithme SM-2 pour la révision espacée, difficulté progressive \\
+\textbf{Accessibilité tarifaire} & Modèle freemium adapté au budget des étudiants marocains \\
+\textbf{Suivi de progression} & Statistiques détaillées, activité journalière, taux de réussite \\
+\bottomrule
+\end{tabularx}
+\caption{Axes de différenciation d'EduAI}
+\label{tab:differenciation}
+\end{table}
+
+\subsection{Objectifs du projet}
+
+Les objectifs de ce PFE se répartissent en trois catégories :
+
+\subsubsection{Objectifs techniques}
+\begin{itemize}
+  \item Concevoir et implémenter un pipeline RAG complet (extraction, chunking, embeddings, retrieval, génération) ;
+  \item Développer une API REST performante et asynchrone avec FastAPI ;
+  \item Créer une interface utilisateur moderne et responsive avec Next.js ;
+  \item Intégrer des modèles d'IA multilingues (Groq/Llama 3.3 70B, sentence-transformers, CamemBERT) ;
+  \item Implémenter l'algorithme de répétition espacée SM-2 pour les flashcards.
+\end{itemize}
+
+\subsubsection{Objectifs fonctionnels}
+\begin{itemize}
+  \item Permettre l'upload et le traitement automatique de cours PDF ;
+  \item Générer des résumés pédagogiques structurés par chapitre ;
+  \item Offrir un système de Q\&A conversationnel ancré dans le contenu du cours ;
+  \item Produire des quiz adaptatifs et proposer un mode examen chronométré ;
+  \item Fournir des flashcards intelligentes et des cartes mentales interactives.
+\end{itemize}
+
+\subsubsection{Objectifs business}
+\begin{itemize}
+  \item Livrer une version bêta fonctionnelle et déployable en production ;
+  \item Valider le modèle SaaS freemium (plan gratuit / plan pro) ;
+  \item Préparer le positionnement sur le marché marocain de l'EdTech.
+\end{itemize}
+
+% ──────────────────────────────────────────────────────────────────────────────
+\section{Méthodologie de travail}
+
+Pour mener à bien ce projet, j'ai adopté une approche \textbf{Agile} itérative et incrémentale, ce qui m'a permis de livrer les modules progressivement :
+
+\begin{itemize}
+  \item \textbf{Sprints de 2 semaines :} chaque sprint aboutit à la livraison d'un module fonctionnel complet ;
+  \item \textbf{Priorisation par valeur métier :} les fonctionnalités cœur (upload, résumé, Q\&A) ont été développées en priorité ;
+  \item \textbf{Tests continus :} des scripts de test end-to-end sont exécutés à chaque itération ;
+  \item \textbf{Conteneurisation dès le départ :} l'utilisation de Docker garantit la reproductibilité et la portabilité du système.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{clX}
+\toprule
+\rowcolor{eduai-primary}
+\thead{Sprint} & \thead{Module} & \thead{Livrables} \\
+\midrule
+1 & Authentification \& Upload & JWT, inscription/connexion, upload PDF, extraction, chunking \\
+2 & Résumé \& Q\&A & Pipeline RAG, résumés LLM par chapitre, chat contextuel \\
+3 & Quiz \& Flashcards & Génération de quiz par le LLM, algorithme SM-2, résultats \\
+4 & Examen \& Carte mentale & Mode examen chronométré, carte mentale interactive, suivi d'activité \\
+5 & Administration \& Déploiement & Panneau d'administration, Docker Compose, tests finaux \\
+\bottomrule
+\end{tabularx}
+\caption{Planning des sprints}
+\label{tab:sprints}
+\end{table}

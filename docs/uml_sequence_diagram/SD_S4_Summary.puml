@@ -1,0 +1,49 @@
+﻿@startuml SD_S4_Summary
+!theme plain
+title SD_S4 – Résumé Automatique
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+
+actor Utilisateur as U
+participant "Frontend\n(SummaryView)" as FE
+participant "FastAPI\n/api/summary" as API
+participant "MongoDB\ndb.courses/chunks/summaries" as DB
+participant "Summarizer\n(spaCy+TextRank)" as SUM
+participant "LLM Summarizer\n(Groq/Ollama)" as LLM
+
+== Demande de résumé ==
+U -> FE : Onglet "Résumé"
+FE -> FE : Affiche spinner de chargement
+FE -> API : GET /api/summary/{courseId}
+API -> DB : summaries.findOne({course_id, version:"v4-groq"})
+alt Cache trouvé
+    API --> FE : 200 {status:"ready", chapters[], pipeline_meta}
+else
+    API -> DB : courses.findOne({_id: course_id, user_id})
+    API -> DB : chunks.find({course_id}) → chunks[]
+    alt < 3 chunks
+        API --> FE : 200 {status:"processing", chapters:[]}
+        API ->> API : asyncio.create_task(_generate_in_background)
+    else
+        == Pipeline extractif ==
+        API -> SUM : summarize_course(chunks)
+        SUM -> SUM : spaCy NLP + TextRank par chapitre\n→ {title, summary, key_concepts, pages}
+        SUM --> API : chapters[] extractif
+
+        == Raffinement LLM par chapitre ==
+        loop chaque chapitre
+            API -> LLM : refine_chapter(title, bullets, key_concepts)
+            alt LLM disponible
+                LLM --> API : {summary, pedagogic, key_concepts, llm_used:true}
+            else
+                API -> API : garde version extractive
+            end
+        end
+
+        API -> DB : summaries.replaceOne({course_id, version:"v4-groq"},\n{chapters[], version, created_at}, upsert=true)
+        API --> FE : 200 {status:"ready", chapters[], pipeline_meta}
+        FE -> FE : Affiche ChapterSummary[] + PipelineBanner
+    end
+end
+
+@enduml

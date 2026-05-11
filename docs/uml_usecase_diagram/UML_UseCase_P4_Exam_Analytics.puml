@@ -1,0 +1,91 @@
+@startuml EduAI_UseCase_Page4
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam actorStyle awesome
+
+skinparam usecase {
+  BackgroundColor #E8F4FD
+  BorderColor #2E86C1
+  FontSize 11
+  FontName Arial
+}
+skinparam actor {
+  BackgroundColor #D5F5E3
+  BorderColor #1E8449
+  FontSize 12
+  FontName Arial
+}
+skinparam package {
+  BackgroundColor #FEF9E7
+  BorderColor #D4AC0D
+  FontSize 13
+  FontName Arial Bold
+}
+skinparam arrow {
+  Color #2E86C1
+  FontSize 10
+}
+
+title **EduAI — Cas d'Utilisation · Page 4/4**\n**Examen Simulé**
+
+left to right direction
+
+' ── Acteurs ──────────────────────────────────────────────────
+actor "Étudiant" as Student
+actor "Groq LLM\n(llama-3.3-70b)" as LLM #LightBlue
+actor "MongoDB" as DB #LightYellow
+
+' ── Paquet 8 : Examen Simulé ─────────────────────────────────
+package "8. Examen Simulé" {
+  usecase "Démarrer un examen\n(POST /exam/start)" as UC_ExamStart
+  usecase "Configurer l'examen\n(5–40 questions · 5–120 min)" as UC_ExamConfig
+  usecase "Passer l'examen\n(chronomètre · sans correction visible)" as UC_ExamPass
+  usecase "Soumettre l'examen\n(POST /exam/submit)" as UC_ExamSubmit
+  usecase "Voir score et note\n(A ≥90 · B ≥80 · C ≥70 · D ≥60 · F <60)" as UC_ExamResult
+  usecase "Consulter historique\n(GET /exam/history)" as UC_ExamHistory
+}
+
+' ── Relations Étudiant → UCs ─────────────────────────────────
+Student --> UC_ExamStart
+Student --> UC_ExamSubmit
+Student --> UC_ExamHistory
+
+
+' ── Include / Extend ─────────────────────────────────────────
+UC_ExamStart  ..> UC_ExamConfig : <<include>>
+UC_ExamStart  ..> UC_ExamPass   : <<include>>
+UC_ExamSubmit ..> UC_ExamResult : <<include>>
+
+note right of UC_ExamConfig
+  ExamConfig (Pydantic) :
+  - course_id       : str
+  - num_questions   : int (ge=5, le=40)
+  - time_limit_minutes : int (ge=5, le=120)
+end note
+
+note right of UC_ExamResult
+  Grille de notation :
+  A : ≥ 90%  — Excellent
+  B : ≥ 80%  — Bien
+  C : ≥ 70%  — Satisfaisant
+  D : ≥ 60%  — Passable
+  F : < 60%  — Insuffisant
+  passed = percentage >= 60%
+  Sauvegardé dans db.exams
+  + db.quiz_results
+end note
+
+note bottom of UC_ExamHistory
+  Retourne les 50 derniers examens :
+  exam_id · course_name · score
+  total · percentage · grade
+  passed · submitted_at
+end note
+
+' ── Relations systèmes externes ──────────────────────────────
+UC_ExamStart   --> LLM : génère questions d'examen
+UC_ExamStart   --> DB  : get course chunks · create exam session
+UC_ExamSubmit  --> DB  : score answers · save to db.exams + db.quiz_results
+UC_ExamHistory --> DB  : find exams by user_id (last 50)
+
+@enduml

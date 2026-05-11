@@ -1,0 +1,49 @@
+\babel@toc {french}{}\relax 
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Architecture trois-tiers d'EduAI}}{17}{figure.caption.19}%
+\contentsline {figure}{\numberline {3.2}{\ignorespaces Pipeline de traitement à l'upload d'un cours}}{19}{figure.caption.21}%
+\contentsline {figure}{\numberline {3.3}{\ignorespaces Pipeline RAG — Questions-Réponses}}{20}{figure.caption.23}%
+\contentsline {figure}{\numberline {3.4}{\ignorespaces Pipeline de génération de résumés}}{20}{figure.caption.24}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {A.1}{\ignorespaces Diagramme de cas d'utilisation global}}{41}{figure.caption.45}%
+\contentsline {figure}{\numberline {A.2}{\ignorespaces Cas d'utilisation — P1 : Authentification}}{42}{figure.caption.46}%
+\contentsline {figure}{\numberline {A.3}{\ignorespaces Cas d'utilisation — P2 : Gestion des cours}}{42}{figure.caption.47}%
+\contentsline {figure}{\numberline {A.4}{\ignorespaces Cas d'utilisation — P3 : Questions-Réponses}}{43}{figure.caption.48}%
+\contentsline {figure}{\numberline {A.5}{\ignorespaces Cas d'utilisation — P4 : Résumés}}{43}{figure.caption.49}%
+\contentsline {figure}{\numberline {A.6}{\ignorespaces Cas d'utilisation — P5 : Quiz}}{44}{figure.caption.50}%
+\contentsline {figure}{\numberline {A.7}{\ignorespaces Cas d'utilisation — P6 : Flashcards}}{44}{figure.caption.51}%
+\contentsline {figure}{\numberline {A.8}{\ignorespaces Cas d'utilisation — P7 : Carte mentale}}{45}{figure.caption.52}%
+\contentsline {figure}{\numberline {A.9}{\ignorespaces Cas d'utilisation — P8 : Examen}}{45}{figure.caption.53}%
+\contentsline {figure}{\numberline {A.10}{\ignorespaces Cas d'utilisation — P9 : Administration}}{46}{figure.caption.54}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {B.1}{\ignorespaces Diagramme de séquence — Authentification}}{48}{figure.caption.55}%
+\contentsline {figure}{\numberline {B.2}{\ignorespaces Diagramme de séquence — Upload de cours}}{49}{figure.caption.56}%
+\contentsline {figure}{\numberline {B.3}{\ignorespaces Diagramme de séquence — Questions-Réponses (RAG)}}{50}{figure.caption.57}%
+\contentsline {figure}{\numberline {B.4}{\ignorespaces Diagramme de séquence — Génération de résumé}}{51}{figure.caption.58}%
+\contentsline {figure}{\numberline {B.5}{\ignorespaces Diagramme de séquence — Quiz}}{52}{figure.caption.59}%
+\contentsline {figure}{\numberline {B.6}{\ignorespaces Diagramme de séquence — Flashcards}}{53}{figure.caption.60}%
+\contentsline {figure}{\numberline {B.7}{\ignorespaces Diagramme de séquence — Carte mentale}}{54}{figure.caption.61}%
+\contentsline {figure}{\numberline {B.8}{\ignorespaces Diagramme de séquence — Examen}}{55}{figure.caption.62}%
+\contentsline {figure}{\numberline {B.9}{\ignorespaces Diagramme de séquence — Administration}}{56}{figure.caption.63}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {C.1}{\ignorespaces MLD 1/3 — Authentification et Cours (4 collections)}}{57}{figure.caption.64}%
+\contentsline {figure}{\numberline {C.2}{\ignorespaces MLD 2/3 — Résumés, Q\&A, Quiz et Flashcards (7 collections)}}{58}{figure.caption.65}%
+\contentsline {figure}{\numberline {C.3}{\ignorespaces MLD 3/3 — Carte mentale, Examens et Activité (4 collections)}}{58}{figure.caption.66}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {D.1}{\ignorespaces Page d'accueil EduAI}}{59}{figure.caption.67}%
+\contentsline {figure}{\numberline {D.2}{\ignorespaces Interface d'authentification}}{59}{figure.caption.68}%
+\contentsline {figure}{\numberline {D.3}{\ignorespaces Tableau de bord — Mes cours}}{60}{figure.caption.69}%
+\contentsline {figure}{\numberline {D.4}{\ignorespaces Interface d'upload de cours}}{60}{figure.caption.70}%
+\contentsline {figure}{\numberline {D.5}{\ignorespaces Interface de Questions-Réponses (chat)}}{61}{figure.caption.71}%
+\contentsline {figure}{\numberline {D.6}{\ignorespaces Interface des résumés pédagogiques}}{61}{figure.caption.72}%
+\contentsline {figure}{\numberline {D.7}{\ignorespaces Interface du quiz interactif}}{62}{figure.caption.73}%
+\contentsline {figure}{\numberline {D.8}{\ignorespaces Interface des flashcards (révision SM-2)}}{62}{figure.caption.74}%
+\contentsline {figure}{\numberline {D.9}{\ignorespaces Interface de la carte mentale}}{63}{figure.caption.75}%
+\contentsline {figure}{\numberline {D.10}{\ignorespaces Interface du mode examen}}{63}{figure.caption.76}%
+\contentsline {figure}{\numberline {D.11}{\ignorespaces Panneau d'administration}}{64}{figure.caption.77}%
+\contentsfinish 
+\contentsfinish 
